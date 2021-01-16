@@ -1,6 +1,6 @@
-'From Cuis 5.0 [latest update: #4426] on 21 December 2020 at 10:45:19 am'!
+'From Cuis 5.0 [latest update: #4426] on 15 January 2021 at 10:19:52 pm'!
 'Description '!
-!provides: 'Gaudi' 1 30!
+!provides: 'Gaudi' 1 31!
 SystemOrganization addCategory: 'Gaudi-Morphic'!
 SystemOrganization addCategory: 'Gaudi'!
 
@@ -1100,12 +1100,12 @@ populate: aMorph
 	magnets do:[:each | |m| m _ each asMorph. aMorph addMorph: m. m stepAt:0 ].
 ! !
 
-!ForceDirectedSolver methodsFor: 'morphic' stamp: 'DF 12/21/2020 09:33:59'!
+!ForceDirectedSolver methodsFor: 'morphic' stamp: 'DF 1/15/2021 21:09:31'!
 trackProgress
 
 	| progress |
 	
-	progress _ ProgressMorph label: 'Force Solver Progress' subLabel: 'solution quality'.
+	progress _ ProgressMorph label: 'Layout progress' subLabel: ''.
 	
 	progress openInWorld.
 	[ 
