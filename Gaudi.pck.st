@@ -1,6 +1,6 @@
-'From Cuis 5.0 [latest update: #4426] on 19 December 2020 at 10:24:25 pm'!
+'From Cuis 5.0 [latest update: #4426] on 21 December 2020 at 10:45:19 am'!
 'Description '!
-!provides: 'Gaudi' 1 29!
+!provides: 'Gaudi' 1 30!
 SystemOrganization addCategory: 'Gaudi-Morphic'!
 SystemOrganization addCategory: 'Gaudi'!
 
@@ -167,7 +167,7 @@ Orthogonal class
 
 !classDefinition: #ForceDirectedSolver category: 'Gaudi'!
 Object subclass: #ForceDirectedSolver
-	instanceVariableNames: 'magnets springs errorTolerance totalEnergy isSolved counter'
+	instanceVariableNames: 'magnets springs errorTolerance totalEnergy errorRatio solved'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
@@ -868,19 +868,15 @@ point: aParticle
 start: aParticle
 	start _ aParticle! !
 
-!ForceDirectedSolver methodsFor: 'initialization' stamp: 'DF 12/13/2020 14:38:08'!
+!ForceDirectedSolver methodsFor: 'initialization' stamp: 'DF 12/21/2020 09:38:07'!
 initialize
 
 	magnets _ OrderedCollection new.
 	springs _ OrderedCollection new.
 	totalEnergy _ 0.
 	errorTolerance _ 0.01.
-	
-	isSolved _ false.! !
-
-!ForceDirectedSolver methodsFor: 'testing' stamp: 'DF 12/1/2020 19:18:39'!
-isSolved
-	^isSolved! !
+	errorRatio _ 0.
+	solved _ false.! !
 
 !ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 10/9/2018 18:24:47'!
 accumulateForces
@@ -966,7 +962,7 @@ ensureSeparationBy: aPoint
 							
 		! !
 
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 12/14/2020 16:00:39'!
+!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 12/21/2020 09:25:13'!
 firstStep
 
 	self accumulateForces.
@@ -975,8 +971,7 @@ firstStep
 
 	self computeSearchDirection.
 	self moveToLowestPoint.
-
-	^false.! !
+! !
 
 !ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 12/15/2020 19:14:41'!
 moveToLowestPoint
@@ -1006,21 +1001,26 @@ moveToLowestPoint
 	]
 ! !
 
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 12/15/2020 13:36:10'!
+!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 12/21/2020 09:41:31'!
 solve: aNumber
 
-	isSolved _ self firstStep.
+	| counter |
+	
+	self firstStep.
+	
+	solved _ false.
  
 	counter _ 1.
 		
-	[isSolved or: [counter >= aNumber] ] whileFalse:[
-		isSolved _ self step. 
+	[solved or: [counter >= aNumber] ] whileFalse:[
+		solved _ self step. 
 		counter _ counter + 1.
 	].
 
-	self triggerEvent: #solved! !
+	solved _ true.
+! !
 
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 12/7/2020 16:57:43'!
+!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 12/21/2020 09:09:11'!
 step
 
 	| prevEnergy |
@@ -1032,6 +1032,8 @@ step
 	totalEnergy _ magnets inject:0 into:[ :acc :p | acc + (p force dotProduct: p force) ].
 	
 	(prevEnergy - totalEnergy) abs <  errorTolerance 		ifTrue:[^true].
+	
+	errorRatio _ errorTolerance / (prevEnergy - totalEnergy) abs.
 	
 	self computeSearchDirection.
 	self moveToLowestPoint.
@@ -1049,6 +1051,10 @@ addObject: aMagnet
 !ForceDirectedSolver methodsFor: 'accessing' stamp: 'DF 12/12/2020 20:36:57'!
 constraints
 	^springs ! !
+
+!ForceDirectedSolver methodsFor: 'accessing' stamp: 'DF 12/21/2020 09:09:37'!
+errorRatio
+	^errorRatio! !
 
 !ForceDirectedSolver methodsFor: 'accessing' stamp: 'DF 9/27/2018 10:32:50'!
 errorTolerance: aNumber
@@ -1092,6 +1098,22 @@ asMorph
 populate: aMorph
 
 	magnets do:[:each | |m| m _ each asMorph. aMorph addMorph: m. m stepAt:0 ].
+! !
+
+!ForceDirectedSolver methodsFor: 'morphic' stamp: 'DF 12/21/2020 09:33:59'!
+trackProgress
+
+	| progress |
+	
+	progress _ ProgressMorph label: 'Force Solver Progress' subLabel: 'solution quality'.
+	
+	progress openInWorld.
+	[ 
+		[solved] whileFalse:[ 
+			(Delay forMilliseconds: 100) wait.
+			progress incrDone: self errorRatio ].
+		progress delete] fork.
+	
 ! !
 
 !ForceDirectedSolver class methodsFor: 'as yet unclassified' stamp: 'DF 12/17/2020 09:37:45'!
@@ -1208,14 +1230,16 @@ example2
 	s asMorph embeddedInZoomingWindowLabeled: 'Force Directed Layout'
 ! !
 
-!ForceDirectedSolver class methodsFor: 'as yet unclassified' stamp: 'DF 12/17/2020 09:40:52'!
+!ForceDirectedSolver class methodsFor: 'as yet unclassified' stamp: 'DF 12/21/2020 09:19:34'!
 example3
 
 	"self example3"
 
-	| s magnets |
+	| s magnets n |
 	
-	magnets _ (1 to:63) collect:[:each | Magnet new charge: 32 ; position: 800 atRandom @ 800 atRandom ; yourself ].
+	n _ 64.
+	
+	magnets _ (1 to: n - 1) collect:[:each | Magnet new charge: 32 ; position: 800 atRandom @ 800 atRandom ; yourself ].
 
 	s _ ForceDirectedSolver new.
 
@@ -1223,7 +1247,7 @@ example3
 
 	magnets do:[:each | s addObject: each ].
 
-	(1 to:31) do: [ :index | 
+	(1 to:n / 2 - 1) do: [ :index | 
 		s addConstraint: (Spring length:80 strength:0.5 between: (magnets at: index) and: (magnets at: index * 2) ).
 		s addConstraint: (Spring length:80 strength:0.5 between: (magnets at: index) and: (magnets at: index * 2 + 1 ) ). ] .
 
