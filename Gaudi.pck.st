@@ -1,7 +1,8 @@
-'From Cuis 5.0 [latest update: #4426] on 20 January 2021 at 7:02:30 pm'!
+'From Cuis 5.0 [latest update: #4526] on 20 January 2021 at 7:24:39 pm'!
 'Description '!
-!provides: 'Gaudi' 1 32!
-!requires: 'Pen' 1 6 nil!
+!provides: 'Gaudi' 1 33!
+!requires: 'Morphic-Widgets-Extras' 1 35 nil!
+!requires: 'Pen' 1 5 nil!
 SystemOrganization addCategory: 'Gaudi-Morphic'!
 SystemOrganization addCategory: 'Gaudi'!
 
