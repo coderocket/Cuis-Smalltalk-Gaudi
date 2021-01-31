@@ -1,6 +1,6 @@
-'From Cuis 5.0 [latest update: #4526] on 20 January 2021 at 7:24:39 pm'!
+'From Cuis 5.0 [latest update: #4526] on 31 January 2021 at 4:11:13 pm'!
 'Description '!
-!provides: 'Gaudi' 1 33!
+!provides: 'Gaudi' 1 34!
 !requires: 'Morphic-Widgets-Extras' 1 35 nil!
 !requires: 'Pen' 1 5 nil!
 SystemOrganization addCategory: 'Gaudi-Morphic'!
@@ -169,7 +169,7 @@ Orthogonal class
 
 !classDefinition: #ForceDirectedSolver category: 'Gaudi'!
 Object subclass: #ForceDirectedSolver
-	instanceVariableNames: 'magnets springs errorTolerance totalEnergy errorRatio solved'
+	instanceVariableNames: 'magnets springs errorTolerance totalEnergy errorRatio solved maxIterations counter'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
@@ -870,7 +870,7 @@ point: aParticle
 start: aParticle
 	start _ aParticle! !
 
-!ForceDirectedSolver methodsFor: 'initialization' stamp: 'DF 12/21/2020 09:38:07'!
+!ForceDirectedSolver methodsFor: 'initialization' stamp: 'DF 1/31/2021 15:59:28'!
 initialize
 
 	magnets _ OrderedCollection new.
@@ -878,6 +878,8 @@ initialize
 	totalEnergy _ 0.
 	errorTolerance _ 0.01.
 	errorRatio _ 0.
+	counter _ 0.
+	maxIterations _ 1.
 	solved _ false.! !
 
 !ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 10/9/2018 18:24:47'!
@@ -1003,18 +1005,18 @@ moveToLowestPoint
 	]
 ! !
 
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 12/21/2020 09:41:31'!
+!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 1/31/2021 15:59:49'!
 solve: aNumber
 
-	| counter |
-	
 	self firstStep.
 	
 	solved _ false.
  
+	maxIterations _ aNumber.
+	
 	counter _ 1.
 		
-	[solved or: [counter >= aNumber] ] whileFalse:[
+	[solved or: [counter >= maxIterations] ] whileFalse:[
 		solved _ self step. 
 		counter _ counter + 1.
 	].
@@ -1022,7 +1024,7 @@ solve: aNumber
 	solved _ true.
 ! !
 
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 12/21/2020 09:09:11'!
+!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 1/31/2021 14:59:03'!
 step
 
 	| prevEnergy |
@@ -1036,7 +1038,7 @@ step
 	(prevEnergy - totalEnergy) abs <  errorTolerance 		ifTrue:[^true].
 	
 	errorRatio _ errorTolerance / (prevEnergy - totalEnergy) abs.
-	
+		
 	self computeSearchDirection.
 	self moveToLowestPoint.
 	^ false.
@@ -1065,6 +1067,10 @@ errorTolerance: aNumber
 !ForceDirectedSolver methodsFor: 'accessing' stamp: 'DF 12/12/2020 20:36:49'!
 objects
 	^magnets! !
+
+!ForceDirectedSolver methodsFor: 'accessing' stamp: 'DF 1/31/2021 15:57:00'!
+progress
+	^ counter / maxIterations! !
 
 !ForceDirectedSolver methodsFor: 'accessing' stamp: 'DF 12/1/2020 14:38:10'!
 totalEnergy
@@ -1102,7 +1108,7 @@ populate: aMorph
 	magnets do:[:each | |m| m _ each asMorph. aMorph addMorph: m. m stepAt:0 ].
 ! !
 
-!ForceDirectedSolver methodsFor: 'morphic' stamp: 'DF 1/15/2021 21:09:31'!
+!ForceDirectedSolver methodsFor: 'morphic' stamp: 'DF 1/31/2021 15:57:34'!
 trackProgress
 
 	| progress |
@@ -1113,7 +1119,7 @@ trackProgress
 	[ 
 		[solved] whileFalse:[ 
 			(Delay forMilliseconds: 100) wait.
-			progress incrDone: self errorRatio ].
+			progress incrDone: self progress ].
 		progress delete] fork.
 	
 ! !
