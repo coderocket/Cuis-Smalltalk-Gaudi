@@ -1,4 +1,4 @@
-'From Cuis 5.0 [latest update: #4526] on 31 January 2021 at 4:11:13 pm'!
+'From Cuis 5.0 [latest update: #4526] on 31 January 2021 at 4:30:17 pm'!
 'Description '!
 !provides: 'Gaudi' 1 34!
 !requires: 'Morphic-Widgets-Extras' 1 35 nil!
@@ -1024,7 +1024,7 @@ solve: aNumber
 	solved _ true.
 ! !
 
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 1/31/2021 14:59:03'!
+!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 1/31/2021 16:28:42'!
 step
 
 	| prevEnergy |
@@ -1038,7 +1038,7 @@ step
 	(prevEnergy - totalEnergy) abs <  errorTolerance 		ifTrue:[^true].
 	
 	errorRatio _ errorTolerance / (prevEnergy - totalEnergy) abs.
-		
+	
 	self computeSearchDirection.
 	self moveToLowestPoint.
 	^ false.
