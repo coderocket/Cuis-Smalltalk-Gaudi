@@ -1,10 +1,20 @@
-'From Cuis 5.0 [latest update: #4963] on 10 November 2021 at 12:09:35 pm'!
+'From Cuis 5.0 [latest update: #4963] on 14 December 2021 at 10:02:30 pm'!
 'Description '!
-!provides: 'Gaudi' 1 36!
+!provides: 'Gaudi' 1 57!
 !requires: 'Morphic-Widgets-Extras' 1 35 nil!
 SystemOrganization addCategory: 'Gaudi-Morphic'!
 SystemOrganization addCategory: 'Gaudi'!
 
+
+!classDefinition: #CascadingPropertiesInspector category: 'Gaudi-Morphic'!
+DictionaryInspector subclass: #CascadingPropertiesInspector
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Gaudi-Morphic'!
+!classDefinition: 'CascadingPropertiesInspector class' category: 'Gaudi-Morphic'!
+CascadingPropertiesInspector class
+	instanceVariableNames: ''!
 
 !classDefinition: #CenteredKernelMorph category: 'Gaudi-Morphic'!
 KernelMorph subclass: #CenteredKernelMorph
@@ -16,14 +26,34 @@ KernelMorph subclass: #CenteredKernelMorph
 CenteredKernelMorph class
 	instanceVariableNames: ''!
 
+!classDefinition: #QuadTreeMorph category: 'Gaudi-Morphic'!
+KernelMorph subclass: #QuadTreeMorph
+	instanceVariableNames: 'qtree current tolerance affecting'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Gaudi-Morphic'!
+!classDefinition: 'QuadTreeMorph class' category: 'Gaudi-Morphic'!
+QuadTreeMorph class
+	instanceVariableNames: ''!
+
 !classDefinition: #SimpleLineMorph category: 'Gaudi-Morphic'!
 KernelMorph subclass: #SimpleLineMorph
-	instanceVariableNames: 'startPoint endPoint lineWidth arrow arrowHeadLength'
+	instanceVariableNames: 'endPoint lineWidth arrow arrowHeadLength'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi-Morphic'!
 !classDefinition: 'SimpleLineMorph class' category: 'Gaudi-Morphic'!
 SimpleLineMorph class
+	instanceVariableNames: ''!
+
+!classDefinition: #GaudiViewerMorph category: 'Gaudi-Morphic'!
+PluggableScrollPane subclass: #GaudiViewerMorph
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Gaudi-Morphic'!
+!classDefinition: 'GaudiViewerMorph class' category: 'Gaudi-Morphic'!
+GaudiViewerMorph class
 	instanceVariableNames: ''!
 
 !classDefinition: #GaudiViewer category: 'Gaudi-Morphic'!
@@ -36,9 +66,19 @@ Object subclass: #GaudiViewer
 GaudiViewer class
 	instanceVariableNames: ''!
 
+!classDefinition: #CascadingProperties category: 'Gaudi'!
+Object subclass: #CascadingProperties
+	instanceVariableNames: 'parent table'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Gaudi'!
+!classDefinition: 'CascadingProperties class' category: 'Gaudi'!
+CascadingProperties class
+	instanceVariableNames: ''!
+
 !classDefinition: #ConstrainedObject category: 'Gaudi'!
 Object subclass: #ConstrainedObject
-	instanceVariableNames: 'position force searchDirection mass color'
+	instanceVariableNames: 'position force searchDirection mass'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
@@ -64,16 +104,6 @@ ConstrainedObject subclass: #Magnet
 	category: 'Gaudi'!
 !classDefinition: 'Magnet class' category: 'Gaudi'!
 Magnet class
-	instanceVariableNames: ''!
-
-!classDefinition: #RadialMagnet category: 'Gaudi'!
-Magnet subclass: #RadialMagnet
-	instanceVariableNames: 'center radius'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'Gaudi'!
-!classDefinition: 'RadialMagnet class' category: 'Gaudi'!
-RadialMagnet class
 	instanceVariableNames: ''!
 
 !classDefinition: #Constraint category: 'Gaudi'!
@@ -138,8 +168,8 @@ Orthogonal class
 
 !classDefinition: #ForceDirectedSolver category: 'Gaudi'!
 Object subclass: #ForceDirectedSolver
-	instanceVariableNames: 'magnets springs'
-	classVariableNames: ''
+	instanceVariableNames: 'magnets springs properties'
+	classVariableNames: 'Defaults'
 	poolDictionaries: ''
 	category: 'Gaudi'!
 !classDefinition: 'ForceDirectedSolver class' category: 'Gaudi'!
@@ -177,11 +207,76 @@ QuadTreeTwig class
 	instanceVariableNames: ''!
 
 
+!CascadingPropertiesInspector methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:16:58'!
+calculateKeyArray
+
+	"Recalculate the KeyArray from the object being inspected and all of its parents "
+
+	keyArray _ object calculateKeys asArray.
+	selectionIndex _ 0.
+! !
+
 !CenteredKernelMorph methodsFor: 'as yet unclassified' stamp: 'DF 11/9/2021 17:39:00'!
 morphLocalBounds
 
 	^ ((0@0 extent: self morphExtent) translatedBy: (self morphExtent / -2)) scaledBy: (1 / self scale)
 	! !
+
+!QuadTreeMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/9/2021 18:48:31'!
+drawOn: aCanvas
+
+	| aTransform |
+	
+	super drawOn: aCanvas.
+		
+	aTransform _ AffineTransformation transformFrom: qtree window supremum to: (self morphLocalBounds insetBy: 12).
+	
+	qtree drawOn: aCanvas transform: aTransform.
+	
+	affecting do:[:each | each highlightOn: aCanvas transform: aTransform ].
+	
+	aCanvas ellipseCenter: (aTransform transform:current) radius: 4 borderWidth: 1 borderColor: Color gray fillColor: Color green.
+	
+	self redrawNeeded! !
+
+!QuadTreeMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/7/2021 21:49:29'!
+handlesMouseDown: aMouseButtonEvent
+	^true! !
+
+!QuadTreeMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/9/2021 18:55:17'!
+initialize
+
+	super initialize.
+	
+	tolerance _ 0.25.
+	
+	current _ 0@0.
+	
+	affecting _ OrderedCollection new.
+! !
+
+!QuadTreeMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/9/2021 18:43:49'!
+mouseButton1Down: aMouseButtonEvent localPosition: localEventPosition
+
+	| aTransform |
+	
+	aTransform _ AffineTransformation transformFrom: qtree window supremum to: (self morphLocalBounds insetBy: 12).
+	
+	current _ aTransform inverseTransform: localEventPosition.
+	
+	affecting _ qtree affecting: current withTolerance: tolerance.
+	
+	Transcript show: 'affecting ' , affecting size asString, ' magnets' ; cr.
+	
+	! !
+
+!QuadTreeMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/7/2021 21:17:51'!
+qtree: aQuadTree
+	qtree _ aQuadTree! !
+
+!QuadTreeMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/7/2021 21:51:41'!
+tolerance: aNumber
+	tolerance _ aNumber! !
 
 !SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 12/9/2020 17:36:17'!
 arrow: aBoolean
@@ -191,9 +286,12 @@ arrow: aBoolean
 arrowHeadLength: aNumber
 	arrowHeadLength _ aNumber ! !
 
-!SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 12/3/2020 10:54:25'!
+!SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 11/13/2021 14:16:58'!
 endPoint: aPoint
-	endPoint _ aPoint! !
+
+	endPoint _ aPoint.
+	
+	extent _ endPoint.! !
 
 !SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 12/3/2020 10:54:34'!
 lineWidth
@@ -203,23 +301,24 @@ lineWidth
 lineWidth: aNumber
 	lineWidth := aNumber! !
 
-!SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 12/3/2020 10:54:06'!
+!SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 11/13/2021 14:15:50'!
 startPoint: aPoint
-	startPoint _ aPoint! !
 
-!SimpleLineMorph methodsFor: 'drawing' stamp: 'DF 12/9/2020 17:54:25'!
+	self morphPosition: aPoint! !
+
+!SimpleLineMorph methodsFor: 'drawing' stamp: 'DF 11/13/2021 14:18:01'!
 drawOn: aCanvas
 	"Draw self in own coordinates"
 	
 	aCanvas
-		line: startPoint
+		line: `0@0`
 		to:  endPoint
 		width: lineWidth
 		color: color.
 		
 	arrow ifTrue:[ | lineDirection |
 		
-		lineDirection _ (endPoint - startPoint) normalized.
+		lineDirection _ endPoint normalized.
 		
 		aCanvas
 			line: endPoint
@@ -234,14 +333,16 @@ drawOn: aCanvas
 			color: color.
 	].! !
 
-!SimpleLineMorph methodsFor: 'initialization' stamp: 'DF 12/9/2020 17:50:53'!
+!SimpleLineMorph methodsFor: 'initialization' stamp: 'DF 11/13/2021 14:16:21'!
 initialize
 
 	super initialize.
 	
-	startPoint _ 0@0.
-	endPoint _ 0@0.
-	lineWidth := 3.
+	endPoint _ 40@50.
+	
+	extent _ endPoint.
+	
+	lineWidth := 2.
 	
 	arrow _ false.
 	
@@ -256,50 +357,226 @@ morphContainsPoint: aLocalPoint
 	^self morphLocalBounds containsPoint: aLocalPoint
 ! !
 
-!GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 11/10/2021 11:12:40'!
-open: aForceDirectedLayout
+!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:01:44'!
+editProperties
 
-	| aKernelMorph aScrollPane aWindow |
+	model editProperties
+	! !
+
+!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/4/2021 15:38:29'!
+exportAsJPG
+		self request: 'Enter file name'
+		initialAnswer: (model defaultDiagramName),'.jpeg'
+		do: [:aString| (scroller imageFormVG: nil depth: 32) writeJPEGfileNamed: aString]! !
+
+!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/6/2021 17:23:41'!
+getMenu
+
+	| aMenu |
+
+	aMenu _ MenuMorph new defaultTarget: self.
+
+	aMenu
+		add: 'Zoom in' action: #zoomIn;
+		add:'Zoom out' action: #zoomOut;
+		add:'Zoom to fit' action: #zoomToFitAll;
+		addLine;
+		add: 'Properties...' 					action: #editProperties;
+		addLine;
+		add: 'Rerun solver' 					action: #rerunSolver;
+		addLine;
+		add: 'Export...' 	action: #exportAsJPG;
+		addLine.
+
+	^aMenu! !
+
+!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:00:50'!
+rerunSolver
+
+	scroller removeAllMorphs.
+	
+	model solve: 50.
+	
+	model populate: scroller.
+	! !
+
+!GaudiViewerMorph methodsFor: 'zooming' stamp: 'DF 12/6/2021 16:36:44'!
+zoomIn
+	(scroller scale < 10) ifTrue:[scroller scale: scroller scale + 0.1]! !
+
+!GaudiViewerMorph methodsFor: 'zooming' stamp: 'DF 12/6/2021 18:20:58'!
+zoomOut
+
+	| smallerScale |
+	
+	(scroller scale > 0.1) ifFalse:[^self].
+	
+	smallerScale _ scroller scale - 0.1.
+	
+	((scroller morphExtentInOwner scaledBy: smallerScale @ smallerScale) > self morphExtent) ifFalse:[^self].
+	
+	scroller scale: smallerScale.
+	
+	
+	! !
+
+!GaudiViewerMorph methodsFor: 'zooming' stamp: 'DF 12/6/2021 20:31:41'!
+zoomToFitAll
+
+	| xscale yscale |
+	
+	yscale _ self morphExtent y / scroller morphExtent y.
+	
+	xscale _ self morphExtent x / scroller morphExtent x.
+	
+	scroller scale: (yscale max: xscale).
+
+	! !
+
+!GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 12/6/2021 16:26:04'!
+buildToolBar: aModel
+
+	| aLayoutMorph zoomInButton zoomOutButton fitAllButton |
+	
+	aLayoutMorph _ LayoutMorph newRow.
+	
+	aLayoutMorph layoutSpec fixedHeight: 48.
+	
+	aLayoutMorph layoutSpec proportionalWidth: 1.0.
+	
+	aLayoutMorph separation: 18@0.
+	
+	aLayoutMorph axisEdgeWeight: #center.
+	
+	zoomInButton _ PluggableButtonMorph new icon: Theme current listAddIcon ; morphExtent:32@32; yourself.
+	
+	zoomInButton model: aModel; action: #zoomIn.
+	
+	zoomOutButton _ PluggableButtonMorph new icon: Theme current listRemoveIcon ; morphExtent:32@32; yourself.
+
+	zoomOutButton model: aModel; action: #zoomOut.
+	
+	fitAllButton _ PluggableButtonMorph new icon: Theme current viewFullscreenIcon ; morphExtent:32@32; yourself.
+
+	fitAllButton model: aModel; action: #zoomToFitAll.
+	
+	aLayoutMorph addMorph: zoomInButton ; addMorph: zoomOutButton ; addMorph: fitAllButton.
+	
+	^aLayoutMorph
+	! !
+
+!GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 12/10/2021 19:11:22'!
+open: aForceDirectedLayout 
+
+	| aKernelMorph aLayoutMorph aScrollPane aWindow |
 	
 	aKernelMorph _ KernelMorph new.
 
-	aKernelMorph color: Color transparent.
-
-	aScrollPane := PluggableScrollPane new.
-
-	aWindow _ aScrollPane embeddedInMorphicWindowLabeled: 'Gaudi Viewer'.
+	aKernelMorph color: Color white.
+	
+	aScrollPane := GaudiViewerMorph new.
+	
+	aScrollPane model: aForceDirectedLayout.
+	
+	aScrollPane layoutSpec proportionalWidth: 1.0.
+	aScrollPane layoutSpec proportionalHeight: 1.0.
+	
+	aLayoutMorph _ LayoutMorph newColumn.
+	
+	aLayoutMorph addMorph: (self buildToolBar: aScrollPane).
+	
+	aLayoutMorph addMorph: aScrollPane.
+	
+	aWindow _ aLayoutMorph embeddedInMorphicWindowLabeled: 'Gaudi Viewer: ', aForceDirectedLayout defaultDiagramName.
 
 	aWindow openInWorld.
 
 	aKernelMorph morphExtent: aWindow morphExtent.
 
-	aScrollPane scroller: aKernelMorph.
-
 	aForceDirectedLayout populate: aKernelMorph.
+
+	aScrollPane scroller: aKernelMorph.
 ! !
 
-!ConstrainedObject methodsFor: 'morphic' stamp: 'DF 11/10/2021 10:02:03'!
-asMorph: aTransform
+!CascadingProperties methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:21:20'!
+at: aSymbol
+
+	^table at: aSymbol ifAbsent:[
+		parent ifNil:[self error: 'No such property: ', aSymbol].
+		
+		^parent at: aSymbol ].! !
+
+!CascadingProperties methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:22:41'!
+at: aSymbol ifAbsent: aBlock
+
+	^table at: aSymbol ifAbsent:[
+		parent ifNil:aBlock value.
+		
+		^parent at: aSymbol ].! !
+
+!CascadingProperties methodsFor: 'as yet unclassified' stamp: 'DF 11/16/2021 22:06:16'!
+at: aSymbol put: anObject
+	table at: aSymbol put: anObject! !
+
+!CascadingProperties methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:16:32'!
+calculateKeys
+
+	| keyArray |
+
+	keyArray _ OrderedCollection new.
+		
+	parent ifNotNil:[
+		keyArray addAll: parent calculateKeys
+	].
+
+	keyArray addAll: table keysSortedSafely.
+	
+	^keyArray! !
+
+!CascadingProperties methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:18:16'!
+edit
+	^self inspect! !
+
+!CascadingProperties methodsFor: 'as yet unclassified' stamp: 'DF 11/16/2021 22:03:31'!
+initialize
+	parent _ nil.
+	
+	table _ Dictionary new! !
+
+!CascadingProperties methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:18:49'!
+inspectorClass
+	^CascadingPropertiesInspector! !
+
+!CascadingProperties methodsFor: 'as yet unclassified' stamp: 'DF 11/16/2021 22:05:55'!
+lookup: aSymbol
+
+	^table at: aSymbol ifAbsent:[
+		parent ifNil:[self error: 'No such property: ', aSymbol].
+		
+		^parent lookup: aSymbol ].! !
+
+!CascadingProperties methodsFor: 'as yet unclassified' stamp: 'DF 11/16/2021 22:08:49'!
+parent: aCascadingProperties
+	parent _ aCascadingProperties ! !
+
+!ConstrainedObject methodsFor: 'morphic' stamp: 'DF 11/17/2021 15:23:26'!
+asMorph: aTransform with: properties 
 
 	| aMorph  |
 	
-	aMorph _ self buildMorph.
+	aMorph _ self buildMorph: properties.
 	
 	aMorph morphPosition: (aTransform transform: self position).
 
 	^aMorph.! !
 
-!ConstrainedObject methodsFor: 'morphic' stamp: 'DF 12/9/2020 10:20:39'!
-buildMorph
+!ConstrainedObject methodsFor: 'morphic' stamp: 'DF 11/17/2021 15:21:34'!
+buildMorph: properties
 	self subclassResponsibility ! !
 
 !ConstrainedObject methodsFor: 'accessing' stamp: 'DF 12/12/2020 20:31:50'!
 charge
 	^0! !
-
-!ConstrainedObject methodsFor: 'accessing' stamp: 'DF 12/16/2020 17:21:13'!
-color: aColor
-	color _ aColor! !
 
 !ConstrainedObject methodsFor: 'accessing' stamp: 'DF 12/12/2020 20:30:48'!
 force
@@ -340,8 +617,9 @@ accumulateForce: aPoint
 dischargeForce
 	force _ 0@0.! !
 
-!ConstrainedObject methodsFor: 'solving' stamp: 'DF 12/12/2020 20:30:54'!
+!ConstrainedObject methodsFor: 'solving' stamp: 'DF 11/17/2021 21:34:04'!
 moveAlongSearchDirection: aNumber
+	
 	position _ position + (aNumber * searchDirection).! !
 
 !ConstrainedObject methodsFor: 'initialization' stamp: 'DF 12/15/2020 21:44:03'!
@@ -360,16 +638,16 @@ dischargeForce
 !Anchor methodsFor: 'solving' stamp: 'DF 12/7/2020 08:57:25'!
 moveAlongSearchDirection: aNumber! !
 
-!Anchor methodsFor: 'morphic' stamp: 'DF 12/7/2020 09:22:12'!
-buildMorph
+!Anchor methodsFor: 'morphic' stamp: 'DF 11/17/2021 15:25:18'!
+buildMorph: properties
 
 	| aMorph |
 	
 	aMorph _ KernelMorph new.
 	
-	aMorph color: Color blue.
+	aMorph color: (properties at: #anchor_morph_color).
 	
-	aMorph morphExtent: 3@3.
+	aMorph morphExtent: (properties at: #anchor_morph_extent).
 
 	^aMorph.
 ! !
@@ -405,40 +683,63 @@ charge
 charge: aNumber
 	charge _ aNumber.! !
 
-!Magnet methodsFor: 'solving' stamp: 'DF 12/15/2020 15:29:33'!
+!Magnet methodsFor: 'solving' stamp: 'DF 12/10/2021 16:06:18'!
 magneticForce: aParticle
 
-	| forceDirection  distance |
+	| forceDirection distanceSquared safetyFactor originalPosition vector |
 
-	distance _ (position - aParticle position) r.
-	
-	forceDirection _ (position - aParticle position)  normalized.
-	
-	^forceDirection * charge * aParticle charge / (distance squared + 0.0001)! !
+	safetyFactor _ 1.0e-3.
 
-!Magnet methodsFor: 'morphic' stamp: 'DF 11/10/2021 10:43:19'!
-buildMorph
+	originalPosition _ position.
+
+	vector _ position - aParticle position.		
+	
+	distanceSquared _ vector dotProduct: vector.
+		
+	[distanceSquared < 1.0e-6] whileTrue:[
+		position _ originalPosition + self randomPoint.
+		vector _ position - aParticle position.		
+		distanceSquared _ vector dotProduct: vector.
+	].
+			
+	forceDirection _ vector normalized.
+		
+	^forceDirection scaledByScalar: (charge * aParticle charge / (distanceSquared + safetyFactor))! !
+
+!Magnet methodsFor: 'solving' stamp: 'DF 12/8/2021 19:56:06'!
+randomPoint
+
+	| interval x y |
+	
+	interval _ -1.0e+4 to: 1.0e+4.
+	
+	x _ interval atRandom / 1.0e+5. y _ interval atRandom / 1.0e+5.
+	
+	^ x @ y! !
+
+!Magnet methodsFor: 'morphic' stamp: 'DF 11/17/2021 15:27:12'!
+buildMorph: properties
 
 	| aCircleMorph aMorph |
 	
 	aCircleMorph _ EllipseMorph new.
 	
-	color ifNotNil:[aCircleMorph color: color].
+	aCircleMorph color: (properties at:#magnet_morph_color).
 	
 	"aMorph addMorph: (LabelMorph new contents: self hash asString; yourself)."
 
-	aCircleMorph morphExtent: 8@8.
+	aCircleMorph morphExtent: (properties at: #magnet_morph_extent).
 
 	aMorph _ CenteredKernelMorph new.
+
+	aMorph color: Color transparent.
 	
-	aMorph morphExtent: 8@8.
+	aMorph morphExtent: (properties at: #magnet_morph_extent).
 	
 	aMorph addMorph: aCircleMorph.
 	
-	aCircleMorph morphPosition: -4 @ -4.
-	
-	aMorph color: Color transparent.
-	
+	aCircleMorph morphPosition: (properties at: #magnet_morph_extent) * -0.5.
+		
 	^aMorph.
 
 ! !
@@ -459,22 +760,6 @@ charge: aNumber position: aPoint
 	aParticle position: aPoint.
 	
 	^aParticle! !
-
-!RadialMagnet methodsFor: 'as yet unclassified' stamp: 'DF 12/16/2020 19:31:08'!
-center: aPoint
-	center _ aPoint.
-	position _ aPoint! !
-
-!RadialMagnet methodsFor: 'as yet unclassified' stamp: 'DF 12/16/2020 19:30:55'!
-moveAlongSearchDirection: aNumber
-	
-	searchDirection = (0@0) ifTrue:[^self].
-	
-	position _ center + (searchDirection normalized * radius)! !
-
-!RadialMagnet methodsFor: 'as yet unclassified' stamp: 'DF 12/16/2020 19:31:18'!
-radius: aNumber
-	radius _ aNumber! !
 
 !Constraint methodsFor: 'as yet unclassified' stamp: 'DF 12/12/2020 20:21:21'!
 accumulateForces
@@ -504,6 +789,26 @@ strength: aNumber between: firstParticle and:secondParticle
 to
 	^anAdjacentParticle! !
 
+!BinaryConstraint methodsFor: 'morphic' stamp: 'DF 11/17/2021 17:06:50'!
+asMorphBetween: aMorph and: anotherMorph with: properties 
+
+	| aLineMorph |
+	
+	aLineMorph _ self buildMorphBetween: aMorph and: anotherMorph with: properties.
+		
+	^aLineMorph! !
+
+!BinaryConstraint methodsFor: 'morphic' stamp: 'DF 11/17/2021 17:07:02'!
+buildMorphBetween: aMorph and: anotherMorph with: properties 
+
+	| aLineMorph  |
+	
+	aLineMorph _ SimpleLineMorph new startPoint: aMorph morphPosition ; endPoint: anotherMorph morphPosition - aMorph morphPosition; lineWidth: (properties at:#spring_line_width); yourself.
+
+	aLineMorph color: (properties at: #spring_line_color	).
+		
+	^aLineMorph! !
+
 !BinaryConstraint class methodsFor: 'as yet unclassified' stamp: 'DF 12/13/2020 10:57:43'!
 strength: aNumber between: aConstrainedObject and: anotherConstrainedObject
 
@@ -526,43 +831,46 @@ accumulateForces
 	
 	anAdjacentParticle accumulateForce: 0 @ direction y * strength! !
 
-!Spring methodsFor: 'solving' stamp: 'DF 12/12/2020 20:23:35'!
+!Spring methodsFor: 'solving' stamp: 'DF 11/17/2021 21:48:47'!
 accumulateForces
  
 	| direction distance |
 	 
-	direction _ (aParticle position - anAdjacentParticle position) normalized.
-	
-	distance _ (aParticle position - anAdjacentParticle position) r.
-	
+	distance _ aParticle position dist: anAdjacentParticle position.
+
 	distance < length ifTrue:[^self].
-	
+
+	direction _ (aParticle position - anAdjacentParticle position) normalized.
+		
 	aParticle accumulateForce: direction * strength * (distance - length) negated.
 	
 	anAdjacentParticle accumulateForce: direction * strength * (distance - length).! !
 
-!Spring methodsFor: 'morphic' stamp: 'DF 12/7/2020 09:13:55'!
-asMorphBetween: aMorph and: anotherMorph
+!Spring methodsFor: 'morphic' stamp: 'DF 11/17/2021 17:06:10'!
+buildDebugLabelIn: aLineMorph properties: properties
+
+	^ (properties at:#spring_debug) ifTrue:[ | digits aLabel |
+		
+		digits _ properties at:#spring_debug_fraction_digits.
+	
+		aLabel _ LabelMorph new contents: (length printStringFractionDigits: digits), ':', ((aParticle position dist: anAdjacentParticle position) printStringFractionDigits: digits); yourself.
+		
+		aLineMorph addMorph: aLabel.
+
+		aLabel morphPosition: aLineMorph morphLocalBounds center.
+	]! !
+
+!Spring methodsFor: 'morphic' stamp: 'DF 11/17/2021 17:08:43'!
+buildMorphBetween: aMorph and: anotherMorph with: properties 
 
 	| aLineMorph |
-	
-	aLineMorph _ self buildMorphBetween: aMorph and: anotherMorph.
-	
-	aLineMorph when: #morphicStep evaluate:[:deltaTime |
-		aLineMorph startPoint: aMorph morphExtent // 2 - (aLineMorph lineWidth // 2 ) + aMorph morphPosition ; endPoint: anotherMorph morphExtent // 2 - (aLineMorph lineWidth // 2 ) + anotherMorph morphPosition ].
-	
-	^aLineMorph! !
 
-!Spring methodsFor: 'morphic' stamp: 'DF 12/6/2020 17:18:22'!
-buildMorphBetween: aMorph and: anotherMorph
-
-	| aLineMorph |
+	aLineMorph _ super buildMorphBetween: aMorph and: anotherMorph with: properties.
 	
-	aLineMorph _ SimpleLineMorph new startPoint: aMorph morphPosition ; endPoint: anotherMorph morphPosition; lineWidth: 2; yourself.
+	self buildDebugLabelIn: aLineMorph properties: properties.
 	
-	aLineMorph color: Color gray.
-	
-	^aLineMorph! !
+	^aLineMorph
+! !
 
 !Spring methodsFor: 'accessing' stamp: 'DF 12/7/2020 17:13:32'!
 length
@@ -644,17 +952,13 @@ point: aParticle
 start: aParticle
 	start _ aParticle! !
 
-!ForceDirectedSolver methodsFor: 'initialization' stamp: 'DF 1/31/2021 15:59:28'!
+!ForceDirectedSolver methodsFor: 'initialization' stamp: 'DF 11/16/2021 22:26:51'!
 initialize
 
 	magnets _ OrderedCollection new.
 	springs _ OrderedCollection new.
-	totalEnergy _ 0.
-	errorTolerance _ 0.01.
-	errorRatio _ 0.
-	counter _ 0.
-	maxIterations _ 1.
-	solved _ false.! !
+
+	properties _ CascadingProperties new parent: Defaults ; yourself.! !
 
 !ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 10/9/2018 18:24:47'!
 accumulateForces
@@ -664,7 +968,7 @@ accumulateForces
 	self accumulateSpringForces.
 	self accumulateMagneticForces.! !
 
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 12/19/2020 17:54:59'!
+!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 12/14/2021 15:53:19'!
 accumulateMagneticForces
 "
 	magnets do:[ :each |
@@ -672,17 +976,17 @@ accumulateMagneticForces
 
 	"
 	| quadTree positions window tolerance |			
-	
+		
 	magnets size < 2 ifTrue:[^self].
 	
-	tolerance _ 0.25.
+	tolerance _ (properties at: #force_directed_solver_tolerance		).
 	
 	positions := magnets collect:[ :each | each position ].	
 		
 	window := Rectangle origin: positions min corner: positions max.		
 		
-	quadTree := QuadTree from: magnets within: (window expandBy:0.01).		
-
+	quadTree := QuadTree from: magnets within: (window expandBy: (properties at:#quad_tree_expansion		)).		
+			
 	magnets do:[ :each | 		
 		each accumulateForce: (quadTree repulsionOn: each withTolerance: tolerance) ]
 ! !
@@ -697,51 +1001,16 @@ computeSearchDirection
 
 	magnets do:[:each | each searchDirection: each force ].! !
 
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 12/14/2020 18:36:03'!
-ensureSeparationBy: aPoint
-
-	"make sure no two magents occupy the same position"
-
-	| done positions delta |
-	
-	done _ false.
-
-	delta _ aPoint.
-		
-	[done] whileFalse:[
-		done _ true.
-		positions _ Set new.
-		(magnets reject:[:each | each isKindOf: Anchor])
-		do:[:each | (positions includes: each position)
-							ifTrue:[ 	each position: each position + delta. done _ false 	] 
-							ifFalse:[ positions add: each position] ] ].
-					
-							
-		! !
-
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 12/21/2020 09:25:13'!
-firstStep
-
-	self accumulateForces.
-	
-	totalEnergy _ magnets inject:0 into:[ :acc :p | acc + (p force dotProduct: p force) ].
-
-	self computeSearchDirection.
-	self moveToLowestPoint.
-! !
-
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 12/15/2020 19:14:41'!
+!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 11/18/2021 09:30:54'!
 moveToLowestPoint
 
 	| current next h alpha |
-	
-	h _ 0.001.
-		
+			
 	current _ magnets inject:0 into:[ :acc :p | acc + (p force dotProduct: p searchDirection) ].
+
+	h _ properties at:#force_directed_solver_h	.
 	
-	current < errorTolerance ifTrue:[^self].
-	
-	5 timesRepeat: [
+	(properties at:#force_directed_solver_n	) timesRepeat: [
 
 		magnets do:[ :each | each moveAlongSearchDirection: h ].
 	
@@ -749,8 +1018,8 @@ moveToLowestPoint
 	
 		next _ magnets inject:0 into:[ :acc :p | acc + (p force dotProduct: p searchDirection)].
 	
-		alpha _ h * ( ( current / ( current - next ) ) - 1 ).
-	
+		alpha _ current = next ifTrue:[0] ifFalse:[h * ( ( current / ( current - next ) ) - 1 )].
+			
 		magnets do:[:each | each moveAlongSearchDirection: alpha ].
 		
 		current _ next.
@@ -758,21 +1027,16 @@ moveToLowestPoint
 	]
 ! !
 
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 11/10/2021 11:57:55'!
+!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 11/16/2021 21:38:02'!
 solve: aNumber
 
-	self firstStep.
-	
 	aNumber timesRepeat: [	self step].
 ! !
 
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 11/10/2021 11:56:44'!
+!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 11/17/2021 21:10:13'!
 step
 
 	self accumulateForces.
-		
-	totalEnergy _ magnets inject:0 into:[ :acc :p | acc + (p force dotProduct: p force) ].
-	
 	self computeSearchDirection.
 	self moveToLowestPoint.
 ! !
@@ -785,13 +1049,24 @@ addConstraint: aSpring
 addObject: aMagnet
 	magnets add:aMagnet.! !
 
-!ForceDirectedSolver methodsFor: 'accessing' stamp: 'DF 12/12/2020 20:36:57'!
-constraints
-	^springs ! !
+!ForceDirectedSolver methodsFor: 'accessing' stamp: 'DF 11/17/2021 18:42:57'!
+diverged
 
-!ForceDirectedSolver methodsFor: 'accessing' stamp: 'DF 12/12/2020 20:36:49'!
-objects
-	^magnets! !
+	| corner |
+	
+	corner _ self window corner.
+	
+	^corner x isNaN or: [corner y isNaN ]
+	! !
+
+!ForceDirectedSolver methodsFor: 'accessing' stamp: 'DF 11/30/2021 20:48:58'!
+properties: aCasCadingProperties
+
+	properties _ aCasCadingProperties ! !
+
+!ForceDirectedSolver methodsFor: 'accessing' stamp: 'DF 11/17/2021 21:02:12'!
+setProperty: aSymbol to: anObject
+	properties at: aSymbol put: anObject! !
 
 !ForceDirectedSolver methodsFor: 'accessing' stamp: 'DF 11/10/2021 12:01:10'!
 window
@@ -800,35 +1075,88 @@ window
 	
 	^Rectangle encompassing: (magnets collect:[:each | each position]).! !
 
-!ForceDirectedSolver methodsFor: 'morphic' stamp: 'DF 11/10/2021 12:01:30'!
+!ForceDirectedSolver methodsFor: 'morphic' stamp: 'DF 12/4/2021 15:39:27'!
+defaultDiagramName
+	^ properties at:#default_diagram_name! !
+
+!ForceDirectedSolver methodsFor: 'morphic' stamp: 'DF 11/17/2021 10:02:10'!
+editProperties
+
+	properties edit! !
+
+!ForceDirectedSolver methodsFor: 'morphic' stamp: 'DF 11/17/2021 18:37:35'!
 populate: aMorph 
 
-	| morphMap transform window |
+	| morphMap transform morphWindow |
 
-	window _ aMorph morphLocalBounds insetBy: 128.
+	self diverged ifTrue:[ 
+		^ self reportDivergence: aMorph		
+	].
 	
-	transform _ AffineTransformation transformFrom: self window to: window.
+	morphWindow _ aMorph morphLocalBounds infimum insetBy: (properties at: #force_directed_solver_inset).
 	
+	transform _ AffineTransformation transformFrom: self window supremum to: morphWindow.
+			
 	morphMap _ Dictionary new.
 	
-	magnets do:[:each | morphMap at:each put: (each asMorph: transform)].
+	magnets do:[:each | morphMap at:each put: (each asMorph: transform with: properties)].
 	
-	springs do: [:each | aMorph addMorph: (each asMorphBetween: (morphMap at:each from) and: (morphMap at:each to) ) ].
+	springs do: [:each | aMorph addMorph: (each asMorphBetween: (morphMap at:each from) and: (morphMap at:each to) with: properties ) ].
 	
 	morphMap do:[ :each | aMorph addMorph:  each ].
 ! !
 
-!ForceDirectedSolver class methodsFor: 'as yet unclassified' stamp: 'DF 11/10/2021 11:59:14'!
+!ForceDirectedSolver methodsFor: 'morphic' stamp: 'DF 11/17/2021 18:35:17'!
+reportDivergence: aMorph
+
+	| aLabelMorph |
+		
+	aLabelMorph _ LabelMorph new contents: 'Solver diverged.'.
+		 
+	aLabelMorph morphPosition: (aLabelMorph morphLocalBounds aligned: aLabelMorph morphLocalBounds center with: aMorph morphLocalBounds center) origin.
+		
+	aMorph addMorph: aLabelMorph.! !
+
+!ForceDirectedSolver class methodsFor: 'class initialization' stamp: 'DF 11/30/2021 20:43:36'!
+defaultProperties
+	^Defaults! !
+
+!ForceDirectedSolver class methodsFor: 'class initialization' stamp: 'DF 12/8/2021 20:10:10'!
+initialize
+
+	"self initialize"
+	
+	Defaults _ CascadingProperties new.
+	
+	Defaults 
+		  at: #anchor_morph_color      									put: Color blue
+		; at: #anchor_morph_extent   									put: 4@4
+		; at: #magnet_morph_color					   				put: Color 	yellow
+		; at: #magnet_morph_extent  									put: 8@8
+		; at: #spring_line_width						 			put: 2
+		; at: #spring_line_color				          					put: Color 	gray
+		; at: #spring_debug			                 						put: false
+		; at: #spring_debug_fraction_digits									put: 2
+		; at: #stick_strength                                     put: 25
+		; at: #force_directed_solver_tolerance									put: 0.25
+		; at: #quad_tree_expansion									put: 0.01
+		; at: #force_directed_solver_h									put: 0.001
+		; at: #force_directed_solver_n									put: 5
+		; at: #force_directed_solver_inset									put: 64
+		; at: #default_diagram_name									put: 'gaudi'
+! !
+
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 12/8/2021 19:35:36'!
 example
 
 	"self example"
 	
 	| a b c d s |
 
-	a _ Magnet charge:3.0 position: 30@-30.
-	b _ Magnet charge:3.0 position: -30@30.
-	c _ Magnet charge:3.0 position: 30@30.
-	d _ Magnet charge:3.0 position: -30@-30.
+	a _ Magnet charge:1.0 position: 5.0@-5.0.
+	b _ Magnet charge:1.0 position: -5.0@5.0.
+	c _ Magnet charge:1.0 position: 5.0@5.0.
+	d _ Magnet charge:1.0 position: -5.0@-5.0.
 
 	s _ ForceDirectedSolver new.
 
@@ -837,17 +1165,17 @@ example
 	s addObject: c.
 	s addObject: d.
 
-	s addConstraint: (Spring length:40 strength:1 between:a and:b).
-	s addConstraint: (Spring length:40 strength:1 between:b and:c).
-	s addConstraint: (Spring length:40 strength:1 between:c and:d).
-	s addConstraint: (Spring length:40 strength:1 between:d and:a).
+	s addConstraint: (Spring length:8 strength:1 between:a and:b).
+	s addConstraint: (Spring length:8 strength:1 between:b and:c).
+	s addConstraint: (Spring length:8 strength:1 between:c and:d).
+	s addConstraint: (Spring length:8 strength:1 between:d and:a).
 
-	s solve:150.
-
+	s solve:50.
+	
 	GaudiViewer open:s.
 ! !
 
-!ForceDirectedSolver class methodsFor: 'as yet unclassified' stamp: 'DF 11/10/2021 11:59:18'!
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 11/10/2021 11:59:18'!
 example10
 
 	"self example10"
@@ -873,7 +1201,7 @@ example10
 	GaudiViewer open:s.
 ! !
 
-!ForceDirectedSolver class methodsFor: 'as yet unclassified' stamp: 'DF 11/10/2021 11:59:22'!
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 11/10/2021 11:59:22'!
 example11
 
 	"self example11"
@@ -904,7 +1232,131 @@ example11
 	GaudiViewer open:s.
 ! !
 
-!ForceDirectedSolver class methodsFor: 'as yet unclassified' stamp: 'DF 11/10/2021 11:59:27'!
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 11/14/2021 19:09:03'!
+example12
+! !
+
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 11/14/2021 15:37:01'!
+example13
+
+	"self example13"
+
+	| s magnets n |
+	
+	n _ 32.
+	
+	magnets _ (1 to: n - 1) collect:[:each | Magnet new charge: 1 ; position: 800 atRandom @ 800 atRandom ; yourself ].
+
+	s _ ForceDirectedSolver new.
+
+	magnets do:[:each | s addObject: each ].
+
+	(1 to:n / 2 - 1) do: [ :index | 
+		s addConstraint: (Spring length:1 strength:0.75 between: (magnets at: index) and: (magnets at: index * 2) ).
+		s addConstraint: (Spring length:1 strength:0.75 between: (magnets at: index) and: (magnets at: index * 2 + 1 ) ). ] .
+
+	s solve:100.
+
+	GaudiViewer open:s.
+! !
+
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 11/17/2021 21:25:30'!
+example14
+
+	"self example14"
+	
+	| a b c  s |
+
+	a _ Magnet charge:10.0 position: 20@40.
+	b _ Magnet charge:10.0 position: 30@30.
+	c _ Magnet charge:10.0 position: 60@40.
+
+	s _ ForceDirectedSolver new.
+	
+	s setProperty:#spring_debug to: true.
+
+	s addObject: a.
+	s addObject: b.
+	s addObject: c.
+
+	s addConstraint: (Spring length:10 strength:0.75 between:a and:b).
+	s addConstraint: (Spring length:10 strength:0.75 between:b and:c).
+	s addConstraint: (Spring length:10 strength:0.75 between:c and:a).
+	
+	s solve:30.
+	
+	GaudiViewer open:s.
+! !
+
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 11/18/2021 09:09:56'!
+example15
+
+	"self example15"
+	
+	| a b c d s |
+
+	a _ Magnet charge:1.0 position: 0@0.
+	b _ Magnet charge:1.0 position: 0@0.
+	c _ Magnet charge:1.0 position: 0@0.
+	d _ Magnet charge:1.0 position: 0@0.
+
+	s _ ForceDirectedSolver new.
+
+	s addObject: a.
+	s addObject: b.
+	s addObject: c.
+	s addObject: d.
+
+	s addConstraint: (Spring length:2 strength:1 between:a and:b).
+	s addConstraint: (Spring length:2 strength:1 between:b and:c).
+	s addConstraint: (Spring length:2 strength:1 between:c and:d).
+	s addConstraint: (Spring length:2 strength:2 between:d and:a).
+
+	s solve:20.
+		
+	GaudiViewer open:s.
+! !
+
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 12/14/2021 15:38:50'!
+example16
+
+	"self example16"
+
+	| s magnets n |
+	
+	n _ 256.
+	
+	magnets _ (1 to: n - 1) collect:[:each | Magnet new charge: 32.0 ; yourself ].
+
+	magnets _ magnets asArray.
+
+	(magnets at:1) position: 0@0.
+	
+	s _ ForceDirectedSolver new.
+
+	magnets do:[:each | s addObject: each ].
+
+	(1 to:n / 2 - 1) do: [ :index | 
+		
+		s addConstraint: (Spring length:128 strength:1.0 between: (magnets at: index) and: (magnets at: index * 2) ).
+		s addConstraint: (Spring length:128 strength:1.0 between: (magnets at: index) and: (magnets at: index * 2 + 1 ) ). ] .
+	
+	(1 to: n / 2 -1) do: [ :index | | f |
+		
+		f _ 2 raisedTo: index log2 asInteger.
+		
+		(magnets at: index * 2) position: (magnets at:index) position + (128 * 16 / f  @ 1024).
+		(magnets at: index * 2 + 1) position: (magnets at:index) position + (-16 * 128 / f  @ 1024).
+	].
+
+	s setProperty: #force_directed_solver_tolerance to: 0.4.
+	
+	s solve:150.
+	
+	GaudiViewer open:s.
+! !
+
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 11/10/2021 11:59:27'!
 example2
 
 	"self example2"
@@ -924,31 +1376,43 @@ example2
 	GaudiViewer open:s.
 ! !
 
-!ForceDirectedSolver class methodsFor: 'as yet unclassified' stamp: 'DF 11/10/2021 11:59:33'!
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 12/14/2021 15:51:51'!
 example3
 
 	"self example3"
 
 	| s magnets n |
 	
-	n _ 64.
+	n _ 256.
 	
-	magnets _ (1 to: n - 1) collect:[:each | Magnet new charge: 32 ; position: 800 atRandom @ 800 atRandom ; yourself ].
+	magnets _ (1 to: n - 1) collect:[:each | Magnet new charge: 32.0 ; position: 1600 atRandom @ 1600 atRandom ; yourself ].
+
+	magnets _ magnets asArray.
 
 	s _ ForceDirectedSolver new.
 
 	magnets do:[:each | s addObject: each ].
 
 	(1 to:n / 2 - 1) do: [ :index | 
-		s addConstraint: (Spring length:80 strength:0.5 between: (magnets at: index) and: (magnets at: index * 2) ).
-		s addConstraint: (Spring length:80 strength:0.5 between: (magnets at: index) and: (magnets at: index * 2 + 1 ) ). ] .
+		s addConstraint: (Spring length:30 strength:0.5 between: (magnets at: index) and: (magnets at: index * 2) ).
+		s addConstraint: (Spring length:30 strength:0.5 between: (magnets at: index) and: (magnets at: index * 2 + 1 ) ). ] .
 
-	s solve:150.
+	s setProperty: #force_directed_solver_tolerance to: 0.7.
+	
+	s solve:60.
 
+	s setProperty: #force_directed_solver_tolerance to: 0.3.
+	
+	s solve:30.
+
+	s setProperty: #force_directed_solver_tolerance to: 0.2.
+	
+	s solve:20.
+	
 	GaudiViewer open:s.
 ! !
 
-!ForceDirectedSolver class methodsFor: 'as yet unclassified' stamp: 'DF 11/10/2021 11:59:37'!
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 11/17/2021 16:47:46'!
 example4
 
 	"self example4"
@@ -979,15 +1443,13 @@ example4
 	s addConstraint: (Spring length:80 strength:0.5 between:a and:x).
 	s addConstraint: (Spring length:80 strength:0.5 between:x and:y).
 	s addConstraint: (Spring length:80 strength:0.5 between:y and:d).
-
-	s ensureSeparationBy: 1.
 	
 	s solve:150.
 
 	GaudiViewer open:s.
 ! !
 
-!ForceDirectedSolver class methodsFor: 'as yet unclassified' stamp: 'DF 11/10/2021 11:59:43'!
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 11/17/2021 16:47:52'!
 example6
 
 	"self example6"
@@ -1003,15 +1465,13 @@ example6
 	(1 to:3) do: [ :index | 
 		s addConstraint: (Stick length: 40 strength: 1 between: (magnets at: index) and: (magnets at: index * 2) ).
 		s addConstraint: (Stick length: 40 strength: 1 between: (magnets at: index) and: (magnets at: index * 2 + 1 ) ). ] .
-
-	s ensureSeparationBy: 1.
 	
 	s solve:150.
 
 	GaudiViewer open:s.
 ! !
 
-!ForceDirectedSolver class methodsFor: 'as yet unclassified' stamp: 'DF 11/10/2021 11:59:47'!
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 11/17/2021 17:14:50'!
 example8
 
 	"self example8"
@@ -1026,21 +1486,19 @@ example8
 
 	s addObject:a; addObject: b.
 		
-	s addConstraint: (Horizontal strength: 0.01 between:a and: b).
+	s addConstraint: (Horizontal strength: 1.0 between:a and: b).
 
-	s addConstraint: (Spring length: 80 strength:0.01 between:a and:b).
-	
-	s ensureSeparationBy: 1.
-	
+	s addConstraint: (Spring length: 80 strength: 1.0 between:a and: b).
+		
 	s solve:150.
 
 	GaudiViewer open:s.
 ! !
 
-!ForceDirectedSolver class methodsFor: 'as yet unclassified' stamp: 'DF 11/10/2021 11:59:51'!
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 11/17/2021 17:21:38'!
 example9
 
-	"self example9"
+	"self example9. todo: this example doesn't work because the morphic conversion code assumes all constraints are binary but Orthogonal is a ternary constraint. "
 	
 	| s a b c |
 	
@@ -1054,12 +1512,10 @@ example9
 
 	s addObject:a; addObject: b; addObject:c.
 		
-	s addConstraint: (Orthogonal new strength:0.01 ; start:a ; end:b; point:c; yourself).
+	s addConstraint: (Orthogonal new strength:1 ; start:a ; end:b; point:c; yourself).
 
-	s addConstraint: (Horizontal strength: 0.01 between:b and: c).
-	
-	s ensureSeparationBy: 1.
-	
+	s addConstraint: (Horizontal strength: 1 between:b and: c).
+		
 	s solve:150.
 
 	GaudiViewer open:s.
@@ -1076,6 +1532,26 @@ window
 !QuadTree methodsFor: 'accessing' stamp: 'DF 12/3/2020 17:07:03'!
 window: aRectangle
 	window := aRectangle	! !
+
+!QuadTree methodsFor: 'morphic' stamp: 'DF 12/7/2021 21:15:36'!
+drawOn: aCanvas transform: aTransform   
+	self subclassResponsibility ! !
+
+!QuadTree methodsFor: 'morphic' stamp: 'DF 12/7/2021 22:03:32'!
+highlightOn: aCanvas transform: aTransform   
+	self subclassResponsibility ! !
+
+!QuadTree methodsFor: 'morphic' stamp: 'DF 12/7/2021 22:01:25'!
+see: tolerance
+	(QuadTreeMorph new qtree: self ; tolerance: tolerance ; color: Color veryLightGray ; embeddedInMorphicWindowLabeled: 'See: a ', self class name) openInWorld! !
+
+!QuadTree methodsFor: 'as yet unclassified' stamp: 'DF 12/7/2021 21:47:42'!
+repulsionOn: aNode withTolerance: theta
+	self subclassResponsibility ! !
+
+!QuadTree methodsFor: 'debugging' stamp: 'DF 12/7/2021 21:47:28'!
+affecting: aPoint withTolerance: theta
+	self subclassResponsibility ! !
 
 !QuadTree class methodsFor: 'instance creation' stamp: 'DF 12/3/2020 16:55:03'!
 from: aSetOfNodes within: aWindow
@@ -1127,6 +1603,28 @@ from: aSetOfNodes within: aWindow
 	^QuadTreeTwig new window:aWindow ; children:quadTrees
 	! !
 
+!QuadTree class methodsFor: 'as yet unclassified' stamp: 'DF 12/9/2021 19:06:57'!
+debug
+
+	"self debug"
+
+	| n magnets tolerance positions window quadTree |
+	
+	n _ 256.
+	
+	magnets _ (1 to: n - 1) collect:[:each | Magnet new charge: 32 ; position: 1600 atRandom @ 1600 atRandom ; yourself ].
+
+	tolerance _ 0.4.
+	
+	positions := magnets collect:[ :each | each position ].	
+		
+	window := Rectangle origin: positions min corner: positions max.		
+		
+	quadTree := QuadTree from: magnets within: (window expandBy: 16).		
+	
+	quadTree see: tolerance.
+! !
+
 !QuadTreeLeaf methodsFor: 'accessing' stamp: 'DF 3/8/2017 08:53'!
 charge	^element charge! !
 
@@ -1137,21 +1635,35 @@ element: anObject	element := anObject! !
 position
 	^element position! !
 
-!QuadTreeLeaf methodsFor: 'displaying' stamp: 'DF 3/8/2017 09:42'!
-display	| aPen |			aPen := Pen new.			aPen place: window topLeft ; goto: window topRight ; goto: window bottomRight; goto:window bottomLeft; goto: window topLeft.		element form displayAt: element location! !
+!QuadTreeLeaf methodsFor: 'computing forces' stamp: 'DF 12/7/2021 21:43:24'!
+affecting: aPoint withTolerance: theta
 
-!QuadTreeLeaf methodsFor: 'computing forces' stamp: 'DF 12/3/2020 22:08:44'!
+	aPoint == element		position ifTrue:[^{}].
+		
+	^{self}! !
+
+!QuadTreeLeaf methodsFor: 'computing forces' stamp: 'DF 12/8/2021 19:50:16'!
 repulsionOn: aMagnet withTolerance: theta
 
-	aMagnet == element		ifTrue:[^0].
-	
+	aMagnet == element		ifTrue:[^0.0@0.0 ].
+		
 	^aMagnet magneticForce: element! !
+
+!QuadTreeLeaf methodsFor: 'morphic' stamp: 'DF 12/7/2021 21:39:48'!
+drawOn: aCanvas transform: aTransform 
+	aCanvas ellipseCenter: (aTransform transform: element position) radius: 4 borderWidth: 1 borderColor: Color gray fillColor: Color yellow
+	! !
+
+!QuadTreeLeaf methodsFor: 'morphic' stamp: 'DF 12/7/2021 22:04:00'!
+highlightOn: aCanvas transform: aTransform   
+
+	aCanvas ellipseCenter: (aTransform transform: element position) radius: 4 borderWidth: 1 borderColor: Color gray fillColor: Color red! !
 
 !QuadTreeTwig methodsFor: 'accessing' stamp: 'DF 12/3/2020 17:36:21'!
 charge
 	^charge! !
 
-!QuadTreeTwig methodsFor: 'accessing' stamp: 'DF 12/3/2020 17:36:33'!
+!QuadTreeTwig methodsFor: 'accessing' stamp: 'DF 12/10/2021 15:59:36'!
 children: aSet
 	children := aSet.
 	charge := children inject:0 into:[ :acc :c | acc + c charge] .
@@ -1167,82 +1679,59 @@ window: aRectangle
 	position := (window origin + window corner) / 2.
 		! !
 
-!QuadTreeTwig methodsFor: 'computing forces' stamp: 'DF 12/13/2020 09:53:15'!
+!QuadTreeTwig methodsFor: 'computing forces' stamp: 'DF 12/7/2021 21:56:45'!
+affecting: aPoint withTolerance: theta
+
+	((self width) / (self position dist: aPoint) < theta)
+		ifTrue:[
+			^ { self } ]
+		ifFalse:[ 
+			^children inject:OrderedCollection new into:[ :acc :n | acc addAll: (n affecting: aPoint withTolerance: theta). acc ] 		]! !
+
+!QuadTreeTwig methodsFor: 'computing forces' stamp: 'DF 12/8/2021 20:11:11'!
 repulsionOn: aNode withTolerance: theta
 
-	((self width) / (self position dist: aNode position) < theta)
+	^((self width) / (self position dist: aNode position) < theta)
 		ifTrue:[
-			^ (aNode magneticForce: self) negated ]	
-		ifFalse:[ 
-			^children inject:0 into:[ :acc :n | acc + (n repulsionOn: aNode withTolerance: theta) ] 		]! !
+			(aNode magneticForce: self) negated ]	
+		ifFalse:[ | sum |
+			sum _ 0.0.
+			children do:[:each | sum _ sum + (each repulsionOn: aNode withTolerance: theta)].
+			sum]! !
+
+!QuadTreeTwig methodsFor: 'morphic' stamp: 'DF 12/7/2021 21:25:16'!
+drawOn: aCanvas transform: aTransform 
+
+	aCanvas frameRectangle: (aTransform externalBoundingRectOf: window) borderWidth: 1 color: Color black.
+	
+	children do:[:each | each drawOn: aCanvas transform: aTransform ].
+
+	! !
+
+!QuadTreeTwig methodsFor: 'morphic' stamp: 'DF 12/7/2021 22:06:24'!
+highlightOn: aCanvas transform: aTransform 
+
+	aCanvas frameRectangle: (aTransform externalBoundingRectOf: window) borderWidth: 2 color: Color red.
+	
+
+
+	! !
 
 !Interval methodsFor: '*Gaudi' stamp: 'DF 12/19/2020 21:45:09'!
 atRandom
 
 	^(stop - start) atRandom + start! !
 
-!Pen methodsFor: '*Gaudi' stamp: 'DF 12/8/2020 17:58:45'!
-arcWithRadius: aNumber degrees: angle
+!Point methodsFor: '*Gaudi' stamp: 'DF 12/10/2021 16:03:02'!
+scaledByScalar: aNumber
+	^(aNumber * x) @ (aNumber * y)! !
 
-	| stepSize |
-	
-	" radius = 180 * stepSize / Float pi "
-	
-	stepSize _ aNumber * Float pi / 180.0.
-	
-	angle timesRepeat:[
-		self down ; turn: 1; go: stepSize
-	].
+!Rectangle methodsFor: '*Gaudi' stamp: 'DF 11/13/2021 15:06:25'!
+accurateCenter
 
-	self up.! !
+	^(self topLeft + self bottomRight) / 2
 
-!Pen methodsFor: '*Gaudi' stamp: 'DF 12/16/2020 12:54:01'!
-arcWithRadius: aNumber start: startAngle end: endAngle
-
-	| stepSize |
-	
-	" radius = 180 * stepSize / Float pi "
-	
-	stepSize _ aNumber * Float pi / 180.0.
-	
-	self up.
-	
-	startAngle timesRepeat:[ self turn: 1; go: stepSize ].
-	
-	self down.
-	
-	endAngle - startAngle timesRepeat:[
-		self turn: 1; go: stepSize
-	].
-
-	self up.! !
-
-!Pen methodsFor: '*Gaudi' stamp: 'DF 12/16/2020 13:37:09'!
-arrowHead: aNumber
-
-	| loc |
-	
-	loc _ self location.
-	
-	self down; turn: 150; go: aNumber; up; goto: loc; down; turn: 60; go: aNumber; up; goto: loc.
-	! !
-
-!Pen methodsFor: '*Gaudi' stamp: 'DF 12/8/2020 18:00:10'!
-circleWithRadius: aNumber
-
-	self arcWithRadius: aNumber degrees: 360! !
-
-!Pen methodsFor: '*Gaudi' stamp: 'DF 12/8/2020 18:03:28'!
-discWithRadius: aNumber color: aColor
-
-	self fill:[:p | p arcWithRadius: aNumber degrees: 360] color: aColor! !
-
-!Point methodsFor: '*Gaudi' stamp: 'DF 12/7/2020 18:48:52'!
-scalarProjection: aPoint
-
-	"answers the scalar projection of aPoint on the receiver"
-	
-	^self normalized * (self dotProduct: aPoint) ! !
+! !
 
 !Rectangle methodsFor: '*Gaudi' stamp: 'DF 12/3/2020 16:52:50'!
 asMorph
@@ -1255,6 +1744,21 @@ atRandom
 	" answers a random point in the receiver"
 	
 	^ self width atRandom @ self height atRandom + origin! !
+
+!Rectangle methodsFor: '*Gaudi' stamp: 'DF 11/13/2021 15:06:49'!
+infimum
+
+	"the largest square the can fit inside this rectangle (centered)"
+	
+	| min square  |
+	
+	min _ self width min: self height.
+	
+	square _ (0@0 extent: min@min).
+	
+	^square aligned: square accurateCenter with: self accurateCenter.
+	
+	! !
 
 !Rectangle methodsFor: '*Gaudi' stamp: 'DF 12/3/2020 16:48:40'!
 quadrants
@@ -1270,9 +1774,18 @@ quadrants
 	
 	^ { q11 . q12 . q21 . q22 }! !
 
-!MovableMorph methodsFor: '*Gaudi' stamp: 'DF 12/14/2020 11:34:26'!
-translateBy: aPoint
-	"Change the position of this morph related to the coordinate system of its owner"
-	location _ location translatedBy: aPoint.
-	owner ifNotNil: [ owner someSubmorphPositionOrExtentChanged ].
-	self redrawNeeded.! !
+!Rectangle methodsFor: '*Gaudi' stamp: 'DF 11/13/2021 15:07:13'!
+supremum
+
+	"the smallest square the can hold this rectangle (centered)"
+	
+	| max square  |
+	
+	max _ self width max: self height.
+	
+	square _ (0@0 extent: max@max).
+	
+	^square aligned: square accurateCenter with: self accurateCenter.
+	
+	! !
+ForceDirectedSolver initialize!
