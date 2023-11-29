@@ -1,218 +1,218 @@
-'From Cuis 6.0 [latest update: #5671] on 6 March 2023 at 8:20:04 pm'!
+'From Cuis 6.0 [latest update: #6053] on 29 November 2023 at 7:40:52 pm'!
 'Description '!
-!provides: 'Gaudi' 1 62!
-!requires: 'Morphic-Widgets-Extras' 1 35 nil!
-SystemOrganization addCategory: 'Gaudi-Morphic'!
-SystemOrganization addCategory: 'Gaudi'!
+!provides: 'Gaudi' 1 2!
+!requires: 'Morphic-Widgets-Extras' 1 42 nil!
+SystemOrganization addCategory: #'Gaudi-Morphic'!
+SystemOrganization addCategory: #Gaudi!
 
 
-!classDefinition: #CascadingPropertiesInspector category: 'Gaudi-Morphic'!
+!classDefinition: #CascadingPropertiesInspector category: #'Gaudi-Morphic'!
 DictionaryInspector subclass: #CascadingPropertiesInspector
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi-Morphic'!
-!classDefinition: 'CascadingPropertiesInspector class' category: 'Gaudi-Morphic'!
+!classDefinition: 'CascadingPropertiesInspector class' category: #'Gaudi-Morphic'!
 CascadingPropertiesInspector class
 	instanceVariableNames: ''!
 
-!classDefinition: #GaudiViewerMorph category: 'Gaudi-Morphic'!
+!classDefinition: #GaudiViewerMorph category: #'Gaudi-Morphic'!
 PluggableScrollPane subclass: #GaudiViewerMorph
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi-Morphic'!
-!classDefinition: 'GaudiViewerMorph class' category: 'Gaudi-Morphic'!
+!classDefinition: 'GaudiViewerMorph class' category: #'Gaudi-Morphic'!
 GaudiViewerMorph class
 	instanceVariableNames: ''!
 
-!classDefinition: #CenteredKernelMorph category: 'Gaudi-Morphic'!
+!classDefinition: #CenteredKernelMorph category: #'Gaudi-Morphic'!
 BoxedMorph subclass: #CenteredKernelMorph
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi-Morphic'!
-!classDefinition: 'CenteredKernelMorph class' category: 'Gaudi-Morphic'!
+!classDefinition: 'CenteredKernelMorph class' category: #'Gaudi-Morphic'!
 CenteredKernelMorph class
 	instanceVariableNames: ''!
 
-!classDefinition: #QuadTreeMorph category: 'Gaudi-Morphic'!
+!classDefinition: #QuadTreeMorph category: #'Gaudi-Morphic'!
 BoxedMorph subclass: #QuadTreeMorph
 	instanceVariableNames: 'qtree current tolerance affecting'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi-Morphic'!
-!classDefinition: 'QuadTreeMorph class' category: 'Gaudi-Morphic'!
+!classDefinition: 'QuadTreeMorph class' category: #'Gaudi-Morphic'!
 QuadTreeMorph class
 	instanceVariableNames: ''!
 
-!classDefinition: #SimpleLineMorph category: 'Gaudi-Morphic'!
+!classDefinition: #SimpleLineMorph category: #'Gaudi-Morphic'!
 BoxedMorph subclass: #SimpleLineMorph
 	instanceVariableNames: 'endPoint lineWidth arrow arrowHeadLength'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi-Morphic'!
-!classDefinition: 'SimpleLineMorph class' category: 'Gaudi-Morphic'!
+!classDefinition: 'SimpleLineMorph class' category: #'Gaudi-Morphic'!
 SimpleLineMorph class
 	instanceVariableNames: ''!
 
-!classDefinition: #GaudiViewer category: 'Gaudi-Morphic'!
+!classDefinition: #GaudiViewer category: #'Gaudi-Morphic'!
 Object subclass: #GaudiViewer
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi-Morphic'!
-!classDefinition: 'GaudiViewer class' category: 'Gaudi-Morphic'!
+!classDefinition: 'GaudiViewer class' category: #'Gaudi-Morphic'!
 GaudiViewer class
 	instanceVariableNames: ''!
 
-!classDefinition: #CascadingProperties category: 'Gaudi'!
+!classDefinition: #CascadingProperties category: #Gaudi!
 Object subclass: #CascadingProperties
 	instanceVariableNames: 'parent table'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
-!classDefinition: 'CascadingProperties class' category: 'Gaudi'!
+!classDefinition: 'CascadingProperties class' category: #Gaudi!
 CascadingProperties class
 	instanceVariableNames: ''!
 
-!classDefinition: #ConstrainedObject category: 'Gaudi'!
+!classDefinition: #ConstrainedObject category: #Gaudi!
 Object subclass: #ConstrainedObject
 	instanceVariableNames: 'position force searchDirection mass'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
-!classDefinition: 'ConstrainedObject class' category: 'Gaudi'!
+!classDefinition: 'ConstrainedObject class' category: #Gaudi!
 ConstrainedObject class
 	instanceVariableNames: ''!
 
-!classDefinition: #Anchor category: 'Gaudi'!
+!classDefinition: #Anchor category: #Gaudi!
 ConstrainedObject subclass: #Anchor
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
-!classDefinition: 'Anchor class' category: 'Gaudi'!
+!classDefinition: 'Anchor class' category: #Gaudi!
 Anchor class
 	instanceVariableNames: ''!
 
-!classDefinition: #Magnet category: 'Gaudi'!
+!classDefinition: #Magnet category: #Gaudi!
 ConstrainedObject subclass: #Magnet
 	instanceVariableNames: 'charge'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
-!classDefinition: 'Magnet class' category: 'Gaudi'!
+!classDefinition: 'Magnet class' category: #Gaudi!
 Magnet class
 	instanceVariableNames: ''!
 
-!classDefinition: #Constraint category: 'Gaudi'!
+!classDefinition: #Constraint category: #Gaudi!
 Object subclass: #Constraint
 	instanceVariableNames: 'strength'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
-!classDefinition: 'Constraint class' category: 'Gaudi'!
+!classDefinition: 'Constraint class' category: #Gaudi!
 Constraint class
 	instanceVariableNames: ''!
 
-!classDefinition: #BinaryConstraint category: 'Gaudi'!
+!classDefinition: #BinaryConstraint category: #Gaudi!
 Constraint subclass: #BinaryConstraint
 	instanceVariableNames: 'aParticle anAdjacentParticle'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
-!classDefinition: 'BinaryConstraint class' category: 'Gaudi'!
+!classDefinition: 'BinaryConstraint class' category: #Gaudi!
 BinaryConstraint class
 	instanceVariableNames: ''!
 
-!classDefinition: #Horizontal category: 'Gaudi'!
+!classDefinition: #Horizontal category: #Gaudi!
 BinaryConstraint subclass: #Horizontal
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
-!classDefinition: 'Horizontal class' category: 'Gaudi'!
+!classDefinition: 'Horizontal class' category: #Gaudi!
 Horizontal class
 	instanceVariableNames: ''!
 
-!classDefinition: #Spring category: 'Gaudi'!
+!classDefinition: #Spring category: #Gaudi!
 BinaryConstraint subclass: #Spring
 	instanceVariableNames: 'length'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
-!classDefinition: 'Spring class' category: 'Gaudi'!
+!classDefinition: 'Spring class' category: #Gaudi!
 Spring class
 	instanceVariableNames: ''!
 
-!classDefinition: #Stick category: 'Gaudi'!
+!classDefinition: #Stick category: #Gaudi!
 Spring subclass: #Stick
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
-!classDefinition: 'Stick class' category: 'Gaudi'!
+!classDefinition: 'Stick class' category: #Gaudi!
 Stick class
 	instanceVariableNames: ''!
 
-!classDefinition: #Orthogonal category: 'Gaudi'!
+!classDefinition: #Orthogonal category: #Gaudi!
 Constraint subclass: #Orthogonal
 	instanceVariableNames: 'start end point'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
-!classDefinition: 'Orthogonal class' category: 'Gaudi'!
+!classDefinition: 'Orthogonal class' category: #Gaudi!
 Orthogonal class
 	instanceVariableNames: ''!
 
-!classDefinition: #ForceDirectedSolver category: 'Gaudi'!
+!classDefinition: #ForceDirectedSolver category: #Gaudi!
 Object subclass: #ForceDirectedSolver
 	instanceVariableNames: 'magnets springs properties prev residual direction'
 	classVariableNames: 'Defaults'
 	poolDictionaries: ''
 	category: 'Gaudi'!
-!classDefinition: 'ForceDirectedSolver class' category: 'Gaudi'!
+!classDefinition: 'ForceDirectedSolver class' category: #Gaudi!
 ForceDirectedSolver class
 	instanceVariableNames: ''!
 
-!classDefinition: #ParticleLayoutManager category: 'Gaudi'!
+!classDefinition: #ParticleLayoutManager category: #Gaudi!
 Object subclass: #ParticleLayoutManager
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
-!classDefinition: 'ParticleLayoutManager class' category: 'Gaudi'!
+!classDefinition: 'ParticleLayoutManager class' category: #Gaudi!
 ParticleLayoutManager class
 	instanceVariableNames: ''!
 
-!classDefinition: #QuadTree category: 'Gaudi'!
+!classDefinition: #QuadTree category: #Gaudi!
 Object subclass: #QuadTree
 	instanceVariableNames: 'window'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
-!classDefinition: 'QuadTree class' category: 'Gaudi'!
+!classDefinition: 'QuadTree class' category: #Gaudi!
 QuadTree class
 	instanceVariableNames: ''!
 
-!classDefinition: #QuadTreeLeaf category: 'Gaudi'!
+!classDefinition: #QuadTreeLeaf category: #Gaudi!
 QuadTree subclass: #QuadTreeLeaf
 	instanceVariableNames: 'element'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
-!classDefinition: 'QuadTreeLeaf class' category: 'Gaudi'!
+!classDefinition: 'QuadTreeLeaf class' category: #Gaudi!
 QuadTreeLeaf class
 	instanceVariableNames: ''!
 
-!classDefinition: #QuadTreeTwig category: 'Gaudi'!
+!classDefinition: #QuadTreeTwig category: #Gaudi!
 QuadTree subclass: #QuadTreeTwig
 	instanceVariableNames: 'children charge position'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi'!
-!classDefinition: 'QuadTreeTwig class' category: 'Gaudi'!
+!classDefinition: 'QuadTreeTwig class' category: #Gaudi!
 QuadTreeTwig class
 	instanceVariableNames: ''!
 
@@ -486,14 +486,14 @@ buildToolBar: aModel
 	^aLayoutMorph
 	! !
 
-!GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 5/2/2022 16:57:02'!
+!GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 11/29/2023 17:20:23'!
 open: aForceDirectedLayout 
 
 	| aKernelMorph aLayoutMorph aScrollPane aWindow |
 	
-	aKernelMorph _ BoxedMorph new.
+	aKernelMorph := BoxedMorph new.
 
-	aKernelMorph color: Color white.
+	aKernelMorph color: Color veryVeryLightGray.
 	
 	aScrollPane := GaudiViewerMorph new.
 	
@@ -502,13 +502,13 @@ open: aForceDirectedLayout
 	aScrollPane layoutSpec proportionalWidth: 1.0.
 	aScrollPane layoutSpec proportionalHeight: 1.0.
 	
-	aLayoutMorph _ LayoutMorph newColumn.
+	aLayoutMorph := LayoutMorph newColumn.
 	
 	aLayoutMorph addMorph: (self buildToolBar: aScrollPane).
 	
 	aLayoutMorph addMorph: aScrollPane.
 	
-	aWindow _ aLayoutMorph embeddedInMorphicWindowLabeled: 'Gaudi Viewer: ', aForceDirectedLayout defaultDiagramName.
+	aWindow := aLayoutMorph embeddedInMorphicWindowLabeled: 'Gaudi Viewer: ', aForceDirectedLayout defaultDiagramName.
 
 	aWindow openInWorld.
 
@@ -519,14 +519,14 @@ open: aForceDirectedLayout
 	aScrollPane scroller: aKernelMorph.
 ! !
 
-!GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 5/3/2022 09:19:44'!
+!GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 11/29/2023 17:29:13'!
 open: aForceDirectedLayout label: aString
 
 	| aKernelMorph aLayoutMorph aScrollPane aWindow |
 	
-	aKernelMorph _ BoxedMorph new.
+	aKernelMorph := BoxedMorph new.
 
-	aKernelMorph color: Color white.
+	aKernelMorph color: Color veryVeryLightGray.
 	
 	aScrollPane := GaudiViewerMorph new.
 	
@@ -535,13 +535,13 @@ open: aForceDirectedLayout label: aString
 	aScrollPane layoutSpec proportionalWidth: 1.0.
 	aScrollPane layoutSpec proportionalHeight: 1.0.
 	
-	aLayoutMorph _ LayoutMorph newColumn.
+	aLayoutMorph := LayoutMorph newColumn.
 	
 	aLayoutMorph addMorph: (self buildToolBar: aScrollPane).
 	
 	aLayoutMorph addMorph: aScrollPane.
 	
-	aWindow _ aLayoutMorph embeddedInMorphicWindowLabeled: aString.
+	aWindow := aLayoutMorph embeddedInMorphicWindowLabeled: aString.
 
 	aWindow openInWorld.
 
@@ -1208,7 +1208,7 @@ reportDivergence: aMorph
 defaultProperties
 	^Defaults! !
 
-!ForceDirectedSolver class methodsFor: 'class initialization' stamp: 'DF 12/8/2021 20:10:10'!
+!ForceDirectedSolver class methodsFor: 'class initialization' stamp: 'DF 11/29/2023 15:51:21'!
 initialize
 
 	"self initialize"
