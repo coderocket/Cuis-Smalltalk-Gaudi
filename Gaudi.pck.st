@@ -1,6 +1,6 @@
-'From Cuis 5.0 [latest update: #4963] on 14 December 2021 at 10:02:30 pm'!
+'From Cuis 6.0 [latest update: #5671] on 6 March 2023 at 8:20:04 pm'!
 'Description '!
-!provides: 'Gaudi' 1 57!
+!provides: 'Gaudi' 1 62!
 !requires: 'Morphic-Widgets-Extras' 1 35 nil!
 SystemOrganization addCategory: 'Gaudi-Morphic'!
 SystemOrganization addCategory: 'Gaudi'!
@@ -16,8 +16,18 @@ DictionaryInspector subclass: #CascadingPropertiesInspector
 CascadingPropertiesInspector class
 	instanceVariableNames: ''!
 
+!classDefinition: #GaudiViewerMorph category: 'Gaudi-Morphic'!
+PluggableScrollPane subclass: #GaudiViewerMorph
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Gaudi-Morphic'!
+!classDefinition: 'GaudiViewerMorph class' category: 'Gaudi-Morphic'!
+GaudiViewerMorph class
+	instanceVariableNames: ''!
+
 !classDefinition: #CenteredKernelMorph category: 'Gaudi-Morphic'!
-KernelMorph subclass: #CenteredKernelMorph
+BoxedMorph subclass: #CenteredKernelMorph
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -27,7 +37,7 @@ CenteredKernelMorph class
 	instanceVariableNames: ''!
 
 !classDefinition: #QuadTreeMorph category: 'Gaudi-Morphic'!
-KernelMorph subclass: #QuadTreeMorph
+BoxedMorph subclass: #QuadTreeMorph
 	instanceVariableNames: 'qtree current tolerance affecting'
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -37,23 +47,13 @@ QuadTreeMorph class
 	instanceVariableNames: ''!
 
 !classDefinition: #SimpleLineMorph category: 'Gaudi-Morphic'!
-KernelMorph subclass: #SimpleLineMorph
+BoxedMorph subclass: #SimpleLineMorph
 	instanceVariableNames: 'endPoint lineWidth arrow arrowHeadLength'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi-Morphic'!
 !classDefinition: 'SimpleLineMorph class' category: 'Gaudi-Morphic'!
 SimpleLineMorph class
-	instanceVariableNames: ''!
-
-!classDefinition: #GaudiViewerMorph category: 'Gaudi-Morphic'!
-PluggableScrollPane subclass: #GaudiViewerMorph
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'Gaudi-Morphic'!
-!classDefinition: 'GaudiViewerMorph class' category: 'Gaudi-Morphic'!
-GaudiViewerMorph class
 	instanceVariableNames: ''!
 
 !classDefinition: #GaudiViewer category: 'Gaudi-Morphic'!
@@ -168,12 +168,22 @@ Orthogonal class
 
 !classDefinition: #ForceDirectedSolver category: 'Gaudi'!
 Object subclass: #ForceDirectedSolver
-	instanceVariableNames: 'magnets springs properties'
+	instanceVariableNames: 'magnets springs properties prev residual direction'
 	classVariableNames: 'Defaults'
 	poolDictionaries: ''
 	category: 'Gaudi'!
 !classDefinition: 'ForceDirectedSolver class' category: 'Gaudi'!
 ForceDirectedSolver class
+	instanceVariableNames: ''!
+
+!classDefinition: #ParticleLayoutManager category: 'Gaudi'!
+Object subclass: #ParticleLayoutManager
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Gaudi'!
+!classDefinition: 'ParticleLayoutManager class' category: 'Gaudi'!
+ParticleLayoutManager class
 	instanceVariableNames: ''!
 
 !classDefinition: #QuadTree category: 'Gaudi'!
@@ -215,6 +225,93 @@ calculateKeyArray
 	keyArray _ object calculateKeys asArray.
 	selectionIndex _ 0.
 ! !
+
+!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:01:44'!
+editProperties
+
+	model editProperties
+	! !
+
+!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/4/2021 15:38:29'!
+exportAsJPG
+		self request: 'Enter file name'
+		initialAnswer: (model defaultDiagramName),'.jpeg'
+		do: [:aString| (scroller imageFormVG: nil depth: 32) writeJPEGfileNamed: aString]! !
+
+!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 3/6/2023 17:36:56'!
+getMenu
+
+	| aMenu |
+
+	aMenu _ MenuMorph new defaultTarget: self.
+
+	aMenu
+		add: 'Zoom in' action: #zoomIn;
+		add:'Zoom out' action: #zoomOut;
+		add:'Zoom to fit' action: #zoomToFitAll;
+		addLine;
+		add: 'Properties...' 					action: #editProperties;
+		addLine;
+		add: 'Rerun solver' 					action: #rerunSolver;
+		add: 'Single step' 					action: #stepSolver;
+		addLine;
+		add: 'Export...' 	action: #exportAsJPG;
+		addLine.
+
+	^aMenu! !
+
+!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:00:50'!
+rerunSolver
+
+	scroller removeAllMorphs.
+	
+	model solve: 50.
+	
+	model populate: scroller.
+	! !
+
+!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 3/6/2023 17:37:07'!
+stepSolver
+
+	scroller removeAllMorphs.
+	
+	model solve: 1.
+	
+	model populate: scroller.
+	! !
+
+!GaudiViewerMorph methodsFor: 'zooming' stamp: 'DF 12/6/2021 16:36:44'!
+zoomIn
+	(scroller scale < 10) ifTrue:[scroller scale: scroller scale + 0.1]! !
+
+!GaudiViewerMorph methodsFor: 'zooming' stamp: 'DF 12/6/2021 18:20:58'!
+zoomOut
+
+	| smallerScale |
+	
+	(scroller scale > 0.1) ifFalse:[^self].
+	
+	smallerScale _ scroller scale - 0.1.
+	
+	((scroller morphExtentInOwner scaledBy: smallerScale @ smallerScale) > self morphExtent) ifFalse:[^self].
+	
+	scroller scale: smallerScale.
+	
+	
+	! !
+
+!GaudiViewerMorph methodsFor: 'zooming' stamp: 'DF 12/6/2021 20:31:41'!
+zoomToFitAll
+
+	| xscale yscale |
+	
+	yscale _ self morphExtent y / scroller morphExtent y.
+	
+	xscale _ self morphExtent x / scroller morphExtent x.
+	
+	scroller scale: (yscale max: xscale).
+
+	! !
 
 !CenteredKernelMorph methodsFor: 'as yet unclassified' stamp: 'DF 11/9/2021 17:39:00'!
 morphLocalBounds
@@ -357,82 +454,6 @@ morphContainsPoint: aLocalPoint
 	^self morphLocalBounds containsPoint: aLocalPoint
 ! !
 
-!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:01:44'!
-editProperties
-
-	model editProperties
-	! !
-
-!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/4/2021 15:38:29'!
-exportAsJPG
-		self request: 'Enter file name'
-		initialAnswer: (model defaultDiagramName),'.jpeg'
-		do: [:aString| (scroller imageFormVG: nil depth: 32) writeJPEGfileNamed: aString]! !
-
-!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/6/2021 17:23:41'!
-getMenu
-
-	| aMenu |
-
-	aMenu _ MenuMorph new defaultTarget: self.
-
-	aMenu
-		add: 'Zoom in' action: #zoomIn;
-		add:'Zoom out' action: #zoomOut;
-		add:'Zoom to fit' action: #zoomToFitAll;
-		addLine;
-		add: 'Properties...' 					action: #editProperties;
-		addLine;
-		add: 'Rerun solver' 					action: #rerunSolver;
-		addLine;
-		add: 'Export...' 	action: #exportAsJPG;
-		addLine.
-
-	^aMenu! !
-
-!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:00:50'!
-rerunSolver
-
-	scroller removeAllMorphs.
-	
-	model solve: 50.
-	
-	model populate: scroller.
-	! !
-
-!GaudiViewerMorph methodsFor: 'zooming' stamp: 'DF 12/6/2021 16:36:44'!
-zoomIn
-	(scroller scale < 10) ifTrue:[scroller scale: scroller scale + 0.1]! !
-
-!GaudiViewerMorph methodsFor: 'zooming' stamp: 'DF 12/6/2021 18:20:58'!
-zoomOut
-
-	| smallerScale |
-	
-	(scroller scale > 0.1) ifFalse:[^self].
-	
-	smallerScale _ scroller scale - 0.1.
-	
-	((scroller morphExtentInOwner scaledBy: smallerScale @ smallerScale) > self morphExtent) ifFalse:[^self].
-	
-	scroller scale: smallerScale.
-	
-	
-	! !
-
-!GaudiViewerMorph methodsFor: 'zooming' stamp: 'DF 12/6/2021 20:31:41'!
-zoomToFitAll
-
-	| xscale yscale |
-	
-	yscale _ self morphExtent y / scroller morphExtent y.
-	
-	xscale _ self morphExtent x / scroller morphExtent x.
-	
-	scroller scale: (yscale max: xscale).
-
-	! !
-
 !GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 12/6/2021 16:26:04'!
 buildToolBar: aModel
 
@@ -465,12 +486,12 @@ buildToolBar: aModel
 	^aLayoutMorph
 	! !
 
-!GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 12/10/2021 19:11:22'!
+!GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 5/2/2022 16:57:02'!
 open: aForceDirectedLayout 
 
 	| aKernelMorph aLayoutMorph aScrollPane aWindow |
 	
-	aKernelMorph _ KernelMorph new.
+	aKernelMorph _ BoxedMorph new.
 
 	aKernelMorph color: Color white.
 	
@@ -488,6 +509,39 @@ open: aForceDirectedLayout
 	aLayoutMorph addMorph: aScrollPane.
 	
 	aWindow _ aLayoutMorph embeddedInMorphicWindowLabeled: 'Gaudi Viewer: ', aForceDirectedLayout defaultDiagramName.
+
+	aWindow openInWorld.
+
+	aKernelMorph morphExtent: aWindow morphExtent.
+
+	aForceDirectedLayout populate: aKernelMorph.
+
+	aScrollPane scroller: aKernelMorph.
+! !
+
+!GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 5/3/2022 09:19:44'!
+open: aForceDirectedLayout label: aString
+
+	| aKernelMorph aLayoutMorph aScrollPane aWindow |
+	
+	aKernelMorph _ BoxedMorph new.
+
+	aKernelMorph color: Color white.
+	
+	aScrollPane := GaudiViewerMorph new.
+	
+	aScrollPane model: aForceDirectedLayout.
+	
+	aScrollPane layoutSpec proportionalWidth: 1.0.
+	aScrollPane layoutSpec proportionalHeight: 1.0.
+	
+	aLayoutMorph _ LayoutMorph newColumn.
+	
+	aLayoutMorph addMorph: (self buildToolBar: aScrollPane).
+	
+	aLayoutMorph addMorph: aScrollPane.
+	
+	aWindow _ aLayoutMorph embeddedInMorphicWindowLabeled: aString.
 
 	aWindow openInWorld.
 
@@ -638,12 +692,12 @@ dischargeForce
 !Anchor methodsFor: 'solving' stamp: 'DF 12/7/2020 08:57:25'!
 moveAlongSearchDirection: aNumber! !
 
-!Anchor methodsFor: 'morphic' stamp: 'DF 11/17/2021 15:25:18'!
+!Anchor methodsFor: 'morphic' stamp: 'DF 5/2/2022 17:31:19'!
 buildMorph: properties
 
 	| aMorph |
 	
-	aMorph _ KernelMorph new.
+	aMorph _ BoxedMorph new.
 	
 	aMorph color: (properties at: #anchor_morph_color).
 	
@@ -960,15 +1014,16 @@ initialize
 
 	properties _ CascadingProperties new parent: Defaults ; yourself.! !
 
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 10/9/2018 18:24:47'!
+!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 3/5/2023 09:29:18'!
 accumulateForces
 
 	magnets do:[ :each | each dischargeForce ].
 
 	self accumulateSpringForces.
-	self accumulateMagneticForces.! !
+	self accumulateMagneticForces.
+! !
 
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 12/14/2021 15:53:19'!
+!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 3/5/2023 15:21:59'!
 accumulateMagneticForces
 "
 	magnets do:[ :each |
@@ -996,40 +1051,72 @@ accumulateSpringForces
 
 	springs do: [:each | each accumulateForces ]! !
 
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 12/1/2020 15:13:20'!
+!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 3/5/2023 10:12:36'!
 computeSearchDirection
 
-	magnets do:[:each | each searchDirection: each force ].! !
+	| delta denom beta |
 
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 11/18/2021 09:30:54'!
+	delta _ residual with: prev collect: [:p : q | p dotProduct: (p - q) ].
+	
+	denom _ prev inject:0 into: [:acc :each | acc + (each dotProduct:each) ].
+	
+	beta _ (delta sum / denom) max: 0.
+	
+	direction _ residual + (beta * direction).
+		
+	magnets with:direction do:[:each :d | each searchDirection: d ].! !
+
+!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 3/5/2023 10:26:54'!
 moveToLowestPoint
 
-	| current next h alpha |
-			
+	| current next alpha n delta |
+
+	prev _ residual.
+	
+	alpha _ properties at:#force_directed_solver_h	.
+
+	delta _ magnets inject:0 into:[:acc : each | acc + (each searchDirection dotProduct: each searchDirection) ].
+	
+	n _ 	properties at:#force_directed_solver_n	.
+					
 	current _ magnets inject:0 into:[ :acc :p | acc + (p force dotProduct: p searchDirection) ].
 
-	h _ properties at:#force_directed_solver_h	.
+	magnets do:[ :each | each moveAlongSearchDirection: alpha ].
 	
-	(properties at:#force_directed_solver_n	) timesRepeat: [
+	self accumulateForces.
+	
+	next _ magnets inject:0 into:[ :acc :p | acc + (p force dotProduct: p searchDirection)].
+	
+	[n > 0 and: [ (delta * alpha) abs > 1e-3] ] whileTrue:	 [
+		
+		alpha _ alpha * next / ( current - next ).
 
-		magnets do:[ :each | each moveAlongSearchDirection: h ].
-	
-		self accumulateForces.
-	
-		next _ magnets inject:0 into:[ :acc :p | acc + (p force dotProduct: p searchDirection)].
-	
-		alpha _ current = next ifTrue:[0] ifFalse:[h * ( ( current / ( current - next ) ) - 1 )].
-			
-		magnets do:[:each | each moveAlongSearchDirection: alpha ].
-		
 		current _ next.
+	
+		magnets do:[:each | each moveAlongSearchDirection: alpha ].
+
+		self accumulateForces.
 		
-	]
+		next _ magnets inject:0 into:[ :acc :p | acc + (p force dotProduct: p searchDirection)].
+
+		n _ n - 1	 ].
+	
+	residual _ 	magnets collect:[ :each | each force ].
+	
+
 ! !
 
-!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 11/16/2021 21:38:02'!
+!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 3/5/2023 09:32:11'!
 solve: aNumber
 
+	self accumulateForces.
+
+	residual _ 	magnets collect:[ :each | each force ].	
+	
+	prev _ residual.
+	
+	direction _ residual.
+	
 	aNumber timesRepeat: [	self step].
 ! !
 
@@ -1144,6 +1231,20 @@ initialize
 		; at: #force_directed_solver_n									put: 5
 		; at: #force_directed_solver_inset									put: 64
 		; at: #default_diagram_name									put: 'gaudi'
+! !
+
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 3/6/2023 20:03:30'!
+arrangeInCircle: anOrderedCollection center: aPoint radius: aNumber
+
+	| angle v |
+	
+	angle _ 2 * Float pi / anOrderedCollection size.
+	
+	1 to: anOrderedCollection size do:[:i |
+		
+		v _ aPoint + (Point rho: aNumber theta: (i*angle) ).
+		
+		(anOrderedCollection at: i) position: v ].
 ! !
 
 !ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 12/8/2021 19:35:36'!
@@ -1376,7 +1477,7 @@ example2
 	GaudiViewer open:s.
 ! !
 
-!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 12/14/2021 15:51:51'!
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 3/5/2023 10:36:40'!
 example3
 
 	"self example3"
@@ -1385,7 +1486,7 @@ example3
 	
 	n _ 256.
 	
-	magnets _ (1 to: n - 1) collect:[:each | Magnet new charge: 32.0 ; position: 1600 atRandom @ 1600 atRandom ; yourself ].
+	magnets _ (1 to: n - 1) collect:[:each | Magnet new charge: 8.0 ; position: 400 atRandom @ 400 atRandom ; yourself ].
 
 	magnets _ magnets asArray.
 
@@ -1394,20 +1495,53 @@ example3
 	magnets do:[:each | s addObject: each ].
 
 	(1 to:n / 2 - 1) do: [ :index | 
-		s addConstraint: (Spring length:30 strength:0.5 between: (magnets at: index) and: (magnets at: index * 2) ).
-		s addConstraint: (Spring length:30 strength:0.5 between: (magnets at: index) and: (magnets at: index * 2 + 1 ) ). ] .
-
-	s setProperty: #force_directed_solver_tolerance to: 0.7.
-	
-	s solve:60.
-
-	s setProperty: #force_directed_solver_tolerance to: 0.3.
-	
-	s solve:30.
+		s addConstraint: (Spring length:10 strength:0.05 between: (magnets at: index) and: (magnets at: index * 2) ).
+		s addConstraint: (Spring length:10 strength:0.05 between: (magnets at: index) and: (magnets at: index * 2 + 1 ) ). ] .
 
 	s setProperty: #force_directed_solver_tolerance to: 0.2.
+
+	s setProperty: #force_directed_solver_n to: 10.
 	
-	s solve:20.
+	s solve:40.	
+	
+	GaudiViewer open:s.
+! !
+
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 3/6/2023 20:03:41'!
+example31
+
+	"self example31"
+
+	| s magnets n j ms |
+	
+	s _ ForceDirectedSolver new.
+
+	s setProperty: #force_directed_solver_tolerance to: 0.25.
+	
+	n _ 128.
+	
+	magnets _ (1 to: n-1) collect:[:each | Magnet new charge: 8.0; yourself ].
+
+	(1 to:n / 2 - 1) do: [ :index | 
+		s addConstraint: (Spring length:10 strength:0.05 between: (magnets at: index) and: (magnets at: index * 2) ).
+		s addConstraint: (Spring length:10 strength:0.05 between: (magnets at: index) and: (magnets at: index * 2 + 1 ) ). ] .
+
+	j _ 2.
+	
+	(magnets at:1) position: 0@0.
+	
+	1 to: (n log: 2) - 1 do: [:h |
+		ms _ magnets copyFrom: j to: j + (2 raisedTo:h) - 1.
+		self arrangeInCircle: ms center: 0@0 radius: 15 * h.	
+		j _ j + (2 raisedTo:h)		] .
+	
+	magnets do:[:each | s addObject: each ].
+
+	s setProperty: #force_directed_solver_n to: 10.
+
+	AndreasSystemProfiler spyOn: [s solve:15].	
+	
+	"s solve:10."
 	
 	GaudiViewer open:s.
 ! !
@@ -1519,6 +1653,20 @@ example9
 	s solve:150.
 
 	GaudiViewer open:s.
+! !
+
+!ParticleLayoutManager class methodsFor: 'as yet unclassified' stamp: 'DF 3/6/2023 19:47:43'!
+arrangeInCircle: anOrderedCollection center: aPoint radius: aNumber
+
+	| angle v |
+	
+	angle _ 2 * Float pi / anOrderedCollection size.
+	
+	1 to: anOrderedCollection size do:[:i |
+		
+		v _ aPoint + (Point rho: aNumber theta: (i*angle) ).
+		
+		(anOrderedCollection at: i) position: v ].
 ! !
 
 !QuadTree methodsFor: 'accessing' stamp: 'DF 12/3/2020 17:06:45'!
@@ -1688,14 +1836,14 @@ affecting: aPoint withTolerance: theta
 		ifFalse:[ 
 			^children inject:OrderedCollection new into:[ :acc :n | acc addAll: (n affecting: aPoint withTolerance: theta). acc ] 		]! !
 
-!QuadTreeTwig methodsFor: 'computing forces' stamp: 'DF 12/8/2021 20:11:11'!
+!QuadTreeTwig methodsFor: 'computing forces' stamp: 'DF 3/5/2023 15:04:33'!
 repulsionOn: aNode withTolerance: theta
 
 	^((self width) / (self position dist: aNode position) < theta)
 		ifTrue:[
 			(aNode magneticForce: self) negated ]	
 		ifFalse:[ | sum |
-			sum _ 0.0.
+			sum _ 0.0@0.0.
 			children do:[:each | sum _ sum + (each repulsionOn: aNode withTolerance: theta)].
 			sum]! !
 
@@ -1733,10 +1881,10 @@ accurateCenter
 
 ! !
 
-!Rectangle methodsFor: '*Gaudi' stamp: 'DF 12/3/2020 16:52:50'!
+!Rectangle methodsFor: '*Gaudi' stamp: 'DF 5/2/2022 17:31:30'!
 asMorph
 
-	^KernelMorph new morphPosition: origin ; morphExtent: self extent; yourself! !
+	^BoxedMorph new morphPosition: origin ; morphExtent: self extent; yourself! !
 
 !Rectangle methodsFor: '*Gaudi' stamp: 'DF 12/15/2020 13:44:29'!
 atRandom
