@@ -1,6 +1,6 @@
-'From Cuis 6.0 [latest update: #6053] on 29 November 2023 at 7:40:52 pm'!
+'From Cuis 6.0 [latest update: #6053] on 30 November 2023 at 9:35:33 pm'!
 'Description '!
-!provides: 'Gaudi' 1 2!
+!provides: 'Gaudi' 1 3!
 !requires: 'Morphic-Widgets-Extras' 1 42 nil!
 SystemOrganization addCategory: #'Gaudi-Morphic'!
 SystemOrganization addCategory: #Gaudi!
@@ -284,14 +284,14 @@ stepSolver
 zoomIn
 	(scroller scale < 10) ifTrue:[scroller scale: scroller scale + 0.1]! !
 
-!GaudiViewerMorph methodsFor: 'zooming' stamp: 'DF 12/6/2021 18:20:58'!
+!GaudiViewerMorph methodsFor: 'zooming' stamp: 'DF 11/30/2023 20:16:10'!
 zoomOut
 
 	| smallerScale |
-	
+
 	(scroller scale > 0.1) ifFalse:[^self].
 	
-	smallerScale _ scroller scale - 0.1.
+	smallerScale := scroller scale - 0.1.
 	
 	((scroller morphExtentInOwner scaledBy: smallerScale @ smallerScale) > self morphExtent) ifFalse:[^self].
 	
