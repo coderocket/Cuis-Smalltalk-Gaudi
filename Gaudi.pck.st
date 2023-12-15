@@ -1,7 +1,7 @@
-'From Cuis 6.0 [latest update: #6053] on 30 November 2023 at 9:35:33 pm'!
+'From Cuis 6.0 [latest update: #6053] on 15 December 2023 at 8:59:36 pm'!
 'Description '!
-!provides: 'Gaudi' 1 3!
-!requires: 'Morphic-Widgets-Extras' 1 42 nil!
+!provides: 'Gaudi' 1 4!
+!requires: 'UI-Shapes' 1 37 nil!
 SystemOrganization addCategory: #'Gaudi-Morphic'!
 SystemOrganization addCategory: #Gaudi!
 
@@ -26,16 +26,6 @@ PluggableScrollPane subclass: #GaudiViewerMorph
 GaudiViewerMorph class
 	instanceVariableNames: ''!
 
-!classDefinition: #CenteredKernelMorph category: #'Gaudi-Morphic'!
-BoxedMorph subclass: #CenteredKernelMorph
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'Gaudi-Morphic'!
-!classDefinition: 'CenteredKernelMorph class' category: #'Gaudi-Morphic'!
-CenteredKernelMorph class
-	instanceVariableNames: ''!
-
 !classDefinition: #QuadTreeMorph category: #'Gaudi-Morphic'!
 BoxedMorph subclass: #QuadTreeMorph
 	instanceVariableNames: 'qtree current tolerance affecting'
@@ -47,8 +37,8 @@ QuadTreeMorph class
 	instanceVariableNames: ''!
 
 !classDefinition: #SimpleLineMorph category: #'Gaudi-Morphic'!
-BoxedMorph subclass: #SimpleLineMorph
-	instanceVariableNames: 'endPoint lineWidth arrow arrowHeadLength'
+PlacedMorph subclass: #SimpleLineMorph
+	instanceVariableNames: 'endPoint lineWidth arrow arrowHeadLength color'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi-Morphic'!
@@ -313,12 +303,6 @@ zoomToFitAll
 
 	! !
 
-!CenteredKernelMorph methodsFor: 'as yet unclassified' stamp: 'DF 11/9/2021 17:39:00'!
-morphLocalBounds
-
-	^ ((0@0 extent: self morphExtent) translatedBy: (self morphExtent / -2)) scaledBy: (1 / self scale)
-	! !
-
 !QuadTreeMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/9/2021 18:48:31'!
 drawOn: aCanvas
 
@@ -382,6 +366,14 @@ arrow: aBoolean
 !SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 12/9/2020 17:37:45'!
 arrowHeadLength: aNumber
 	arrowHeadLength _ aNumber ! !
+
+!SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 12/14/2023 20:07:32'!
+center
+	^ (endPoint) / 2! !
+
+!SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 12/14/2023 18:34:44'!
+color: aColor
+	color := aColor! !
 
 !SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 11/13/2021 14:16:58'!
 endPoint: aPoint
@@ -771,30 +763,22 @@ randomPoint
 	
 	^ x @ y! !
 
-!Magnet methodsFor: 'morphic' stamp: 'DF 11/17/2021 15:27:12'!
+!Magnet methodsFor: 'morphic' stamp: 'DF 12/14/2023 18:42:00'!
 buildMorph: properties
 
-	| aCircleMorph aMorph |
+	| aCircleMorph |
 	
-	aCircleMorph _ EllipseMorph new.
+	aCircleMorph := CircleShapeMorph new.
 	
-	aCircleMorph color: (properties at:#magnet_morph_color).
-	
-	"aMorph addMorph: (LabelMorph new contents: self hash asString; yourself)."
+	aCircleMorph fillColor: (properties at:#magnet_morph_color).
 
-	aCircleMorph morphExtent: (properties at: #magnet_morph_extent).
-
-	aMorph _ CenteredKernelMorph new.
-
-	aMorph color: Color transparent.
+	aCircleMorph lineColor: (properties at:#magnet_morph_color).
 	
-	aMorph morphExtent: (properties at: #magnet_morph_extent).
+	aCircleMorph radius: (properties at: #magnet_morph_extent) x / 2.
 	
-	aMorph addMorph: aCircleMorph.
-	
-	aCircleMorph morphPosition: (properties at: #magnet_morph_extent) * -0.5.
+	aCircleMorph center: 0@0. 
 		
-	^aMorph.
+	^aCircleMorph.
 
 ! !
 
@@ -900,18 +884,18 @@ accumulateForces
 	
 	anAdjacentParticle accumulateForce: direction * strength * (distance - length).! !
 
-!Spring methodsFor: 'morphic' stamp: 'DF 11/17/2021 17:06:10'!
+!Spring methodsFor: 'morphic' stamp: 'DF 12/14/2023 20:05:06'!
 buildDebugLabelIn: aLineMorph properties: properties
 
 	^ (properties at:#spring_debug) ifTrue:[ | digits aLabel |
 		
-		digits _ properties at:#spring_debug_fraction_digits.
+		digits := properties at:#spring_debug_fraction_digits.
 	
-		aLabel _ LabelMorph new contents: (length printStringFractionDigits: digits), ':', ((aParticle position dist: anAdjacentParticle position) printStringFractionDigits: digits); yourself.
+		aLabel := LabelMorph new contents: (length printStringFractionDigits: digits), ':', ((aParticle position dist: anAdjacentParticle position) printStringFractionDigits: digits); yourself.
 		
 		aLineMorph addMorph: aLabel.
 
-		aLabel morphPosition: aLineMorph morphLocalBounds center.
+		aLabel morphPosition: aLineMorph center.
 	]! !
 
 !Spring methodsFor: 'morphic' stamp: 'DF 11/17/2021 17:08:43'!
