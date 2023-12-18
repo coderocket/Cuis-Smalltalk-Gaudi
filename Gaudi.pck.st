@@ -1,6 +1,6 @@
-'From Cuis 6.0 [latest update: #6053] on 15 December 2023 at 8:59:36 pm'!
+'From Cuis 6.0 [latest update: #6053] on 18 December 2023 at 8:17:35 pm'!
 'Description '!
-!provides: 'Gaudi' 1 4!
+!provides: 'Gaudi' 1 6!
 !requires: 'UI-Shapes' 1 37 nil!
 SystemOrganization addCategory: #'Gaudi-Morphic'!
 SystemOrganization addCategory: #Gaudi!
@@ -290,18 +290,33 @@ zoomOut
 	
 	! !
 
-!GaudiViewerMorph methodsFor: 'zooming' stamp: 'DF 12/6/2021 20:31:41'!
+!GaudiViewerMorph methodsFor: 'zooming' stamp: 'DF 12/18/2023 19:39:59'!
 zoomToFitAll
 
-	| xscale yscale |
+	| xscale yscale e |
 	
-	yscale _ self morphExtent y / scroller morphExtent y.
+	e := self viewableArea extent.
 	
-	xscale _ self morphExtent x / scroller morphExtent x.
+	yscale := e y / scroller morphExtent y.
+	
+	xscale := e x / scroller morphExtent x.
 	
 	scroller scale: (yscale max: xscale).
 
 	! !
+
+!GaudiViewerMorph methodsFor: 'scrolling' stamp: 'DF 12/18/2023 20:16:41'!
+scrollToShow: aRectangle
+
+	"scroll to include as much of aRectangle as possible, where aRectangle is in the scroller's local space.
+	This means that 0@0 is scrolling all the way top and all the way left"
+	
+	| delta |
+	
+	delta := aRectangle amountToTranslateWithin: (`0@0` extent: self viewableExtent).
+	
+	self scrollBy: delta.
+! !
 
 !QuadTreeMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/9/2021 18:48:31'!
 drawOn: aCanvas
