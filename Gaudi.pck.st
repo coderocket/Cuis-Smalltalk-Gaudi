@@ -1,6 +1,6 @@
-'From Cuis 6.0 [latest update: #6053] on 18 December 2023 at 8:17:35 pm'!
+'From Cuis6.0 [latest update: #6153] on 29 December 2023 at 8:26:05 pm'!
 'Description '!
-!provides: 'Gaudi' 1 6!
+!provides: 'Gaudi' 1 7!
 !requires: 'UI-Shapes' 1 37 nil!
 SystemOrganization addCategory: #'Gaudi-Morphic'!
 SystemOrganization addCategory: #Gaudi!
@@ -216,6 +216,25 @@ calculateKeyArray
 	selectionIndex _ 0.
 ! !
 
+!GaudiViewerMorph methodsFor: 'stepping' stamp: 'DF 12/29/2023 20:20:15'!
+step
+
+	self stepSolver! !
+
+!GaudiViewerMorph methodsFor: 'stepping' stamp: 'DF 12/29/2023 20:23:56'!
+stepSolver
+
+	scroller removeAllMorphs.
+	
+	model solve: 5.
+	
+	model populate: scroller.
+	! !
+
+!GaudiViewerMorph methodsFor: 'stepping' stamp: 'DF 12/29/2023 20:19:30'!
+stepTime
+	^100! !
+
 !GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:01:44'!
 editProperties
 
@@ -228,12 +247,12 @@ exportAsJPG
 		initialAnswer: (model defaultDiagramName),'.jpeg'
 		do: [:aString| (scroller imageFormVG: nil depth: 32) writeJPEGfileNamed: aString]! !
 
-!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 3/6/2023 17:36:56'!
+!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/29/2023 20:17:04'!
 getMenu
 
 	| aMenu |
 
-	aMenu _ MenuMorph new defaultTarget: self.
+	aMenu := MenuMorph new defaultTarget: self.
 
 	aMenu
 		add: 'Zoom in' action: #zoomIn;
@@ -244,6 +263,9 @@ getMenu
 		addLine;
 		add: 'Rerun solver' 					action: #rerunSolver;
 		add: 'Single step' 					action: #stepSolver;
+		addLine;
+		add: 'Start stepping'	 action: #startStepping;
+		add: 'Stop stepping' action: #stopStepping;
 		addLine;
 		add: 'Export...' 	action: #exportAsJPG;
 		addLine.
@@ -256,16 +278,6 @@ rerunSolver
 	scroller removeAllMorphs.
 	
 	model solve: 50.
-	
-	model populate: scroller.
-	! !
-
-!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 3/6/2023 17:37:07'!
-stepSolver
-
-	scroller removeAllMorphs.
-	
-	model solve: 1.
 	
 	model populate: scroller.
 	! !
@@ -1336,18 +1348,24 @@ example11
 example12
 ! !
 
-!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 11/14/2021 15:37:01'!
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 12/29/2023 20:21:07'!
 example13
 
 	"self example13"
 
-	| s magnets n |
+	| s magnets n ps |
 	
-	n _ 32.
+	n := 32.
 	
-	magnets _ (1 to: n - 1) collect:[:each | Magnet new charge: 1 ; position: 800 atRandom @ 800 atRandom ; yourself ].
+	ps := self random: n in: (0@0 extent:800 @ 800).
+	
+	magnets := OrderedCollection new.
+	
+	1 to: n-1 do:[:i |
+		magnets add: (Magnet new charge: 1 ; position: (ps at:i) ; yourself) 
+	].
 
-	s _ ForceDirectedSolver new.
+	s := ForceDirectedSolver new.
 
 	magnets do:[:each | s addObject: each ].
 
@@ -1355,7 +1373,7 @@ example13
 		s addConstraint: (Spring length:1 strength:0.75 between: (magnets at: index) and: (magnets at: index * 2) ).
 		s addConstraint: (Spring length:1 strength:0.75 between: (magnets at: index) and: (magnets at: index * 2 + 1 ) ). ] .
 
-	s solve:100.
+	"s solve:100."
 
 	GaudiViewer open:s.
 ! !
@@ -1653,6 +1671,37 @@ example9
 
 	GaudiViewer open:s.
 ! !
+
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 12/29/2023 20:14:54'!
+random: n in: aRectangle
+
+"answer a random collection of n non-overlapping points in aRectangle"
+
+	| k w h points p a |
+
+	a := 1e+3.
+	
+	k := n sqrt ceiling.
+	
+	w := aRectangle extent x / k.
+	
+	h := aRectangle extent y / k.
+
+	p := aRectangle origin.
+		
+	points := OrderedCollection new.
+	
+	0 to: k - 1 do:[:i |
+		0 to: k - 1 do:[:j | 		| rx ry c |
+			rx := a atRandom / a - 0.5.
+			ry := a atRandom / a - 0.5.
+			c := (w / 2 + (rx * w / 2.1)) @ (h / 2 + (ry * h / 2.1)).
+			points add: p + ( i * w @ (j * h) ) + c
+		]
+	].
+
+	^points
+	! !
 
 !ParticleLayoutManager class methodsFor: 'as yet unclassified' stamp: 'DF 3/6/2023 19:47:43'!
 arrangeInCircle: anOrderedCollection center: aPoint radius: aNumber
