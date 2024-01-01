@@ -1,6 +1,6 @@
-'From Cuis6.0 [latest update: #6153] on 29 December 2023 at 8:26:05 pm'!
+'From Cuis 6.0 [latest update: #6053] on 1 January 2024 at 8:00:57 pm'!
 'Description '!
-!provides: 'Gaudi' 1 7!
+!provides: 'Gaudi' 1 8!
 !requires: 'UI-Shapes' 1 37 nil!
 SystemOrganization addCategory: #'Gaudi-Morphic'!
 SystemOrganization addCategory: #Gaudi!
@@ -24,6 +24,16 @@ PluggableScrollPane subclass: #GaudiViewerMorph
 	category: 'Gaudi-Morphic'!
 !classDefinition: 'GaudiViewerMorph class' category: #'Gaudi-Morphic'!
 GaudiViewerMorph class
+	instanceVariableNames: ''!
+
+!classDefinition: #ActivityIndicatorMorph category: #'Gaudi-Morphic'!
+BoxedMorph subclass: #ActivityIndicatorMorph
+	instanceVariableNames: 'model state'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Gaudi-Morphic'!
+!classDefinition: 'ActivityIndicatorMorph class' category: #'Gaudi-Morphic'!
+ActivityIndicatorMorph class
 	instanceVariableNames: ''!
 
 !classDefinition: #QuadTreeMorph category: #'Gaudi-Morphic'!
@@ -216,25 +226,6 @@ calculateKeyArray
 	selectionIndex _ 0.
 ! !
 
-!GaudiViewerMorph methodsFor: 'stepping' stamp: 'DF 12/29/2023 20:20:15'!
-step
-
-	self stepSolver! !
-
-!GaudiViewerMorph methodsFor: 'stepping' stamp: 'DF 12/29/2023 20:23:56'!
-stepSolver
-
-	scroller removeAllMorphs.
-	
-	model solve: 5.
-	
-	model populate: scroller.
-	! !
-
-!GaudiViewerMorph methodsFor: 'stepping' stamp: 'DF 12/29/2023 20:19:30'!
-stepTime
-	^100! !
-
 !GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:01:44'!
 editProperties
 
@@ -247,7 +238,7 @@ exportAsJPG
 		initialAnswer: (model defaultDiagramName),'.jpeg'
 		do: [:aString| (scroller imageFormVG: nil depth: 32) writeJPEGfileNamed: aString]! !
 
-!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/29/2023 20:17:04'!
+!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 1/1/2024 19:52:05'!
 getMenu
 
 	| aMenu |
@@ -263,6 +254,7 @@ getMenu
 		addLine;
 		add: 'Rerun solver' 					action: #rerunSolver;
 		add: 'Single step' 					action: #stepSolver;
+		add: 'Reshuffle' action: #reshuffle;
 		addLine;
 		add: 'Start stepping'	 action: #startStepping;
 		add: 'Stop stepping' action: #stopStepping;
@@ -279,6 +271,16 @@ rerunSolver
 	
 	model solve: 50.
 	
+	model populate: scroller.
+	! !
+
+!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 1/1/2024 19:58:39'!
+reshuffle
+
+	model reshuffle: (`0@0` extent: self viewableExtent).
+
+	scroller removeAllMorphs.
+		
 	model populate: scroller.
 	! !
 
@@ -329,6 +331,65 @@ scrollToShow: aRectangle
 	
 	self scrollBy: delta.
 ! !
+
+!GaudiViewerMorph methodsFor: 'stepping' stamp: 'DF 12/29/2023 20:20:15'!
+step
+
+	self stepSolver! !
+
+!GaudiViewerMorph methodsFor: 'stepping' stamp: 'DF 12/29/2023 20:23:56'!
+stepSolver
+
+	scroller removeAllMorphs.
+	
+	model solve: 5.
+	
+	model populate: scroller.
+	! !
+
+!GaudiViewerMorph methodsFor: 'stepping' stamp: 'DF 12/29/2023 20:19:30'!
+stepTime
+	^100! !
+
+!GaudiViewerMorph methodsFor: 'stepping' stamp: 'DF 1/1/2024 19:35:33'!
+stopStepping
+
+	super stopStepping.
+	
+	self triggerEvent: #morphicStopStep ! !
+
+!ActivityIndicatorMorph methodsFor: 'as yet unclassified' stamp: 'DF 1/1/2024 19:29:48'!
+drawOn: aCanvas
+
+	| c |
+	
+	c := state = 0 ifTrue:[Color gray] ifFalse:[Color red].
+	
+	aCanvas strokeWidth: 2.0 color: Color black fillColor: c do: [ :canvas |
+		canvas
+			circleCenter: self morphExtent  / 2 radius: self morphExtent x /  2]! !
+
+!ActivityIndicatorMorph methodsFor: 'as yet unclassified' stamp: 'DF 1/1/2024 19:11:21'!
+flip
+	state := 1 - state.
+	
+	self redrawNeeded ! !
+
+!ActivityIndicatorMorph methodsFor: 'as yet unclassified' stamp: 'DF 1/1/2024 19:07:49'!
+initialize
+
+	super initialize.
+	
+	state := 0.! !
+
+!ActivityIndicatorMorph methodsFor: 'as yet unclassified' stamp: 'DF 1/1/2024 19:09:35'!
+requiresVectorCanvas
+	^true! !
+
+!ActivityIndicatorMorph methodsFor: 'as yet unclassified' stamp: 'DF 1/1/2024 19:36:27'!
+reset
+
+	state := 0! !
 
 !QuadTreeMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/9/2021 18:48:31'!
 drawOn: aCanvas
@@ -505,43 +566,16 @@ buildToolBar: aModel
 	^aLayoutMorph
 	! !
 
-!GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 11/29/2023 17:20:23'!
+!GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 1/1/2024 18:56:27'!
 open: aForceDirectedLayout 
 
-	| aKernelMorph aLayoutMorph aScrollPane aWindow |
-	
-	aKernelMorph := BoxedMorph new.
-
-	aKernelMorph color: Color veryVeryLightGray.
-	
-	aScrollPane := GaudiViewerMorph new.
-	
-	aScrollPane model: aForceDirectedLayout.
-	
-	aScrollPane layoutSpec proportionalWidth: 1.0.
-	aScrollPane layoutSpec proportionalHeight: 1.0.
-	
-	aLayoutMorph := LayoutMorph newColumn.
-	
-	aLayoutMorph addMorph: (self buildToolBar: aScrollPane).
-	
-	aLayoutMorph addMorph: aScrollPane.
-	
-	aWindow := aLayoutMorph embeddedInMorphicWindowLabeled: 'Gaudi Viewer: ', aForceDirectedLayout defaultDiagramName.
-
-	aWindow openInWorld.
-
-	aKernelMorph morphExtent: aWindow morphExtent.
-
-	aForceDirectedLayout populate: aKernelMorph.
-
-	aScrollPane scroller: aKernelMorph.
+	self open: aForceDirectedLayout label: aForceDirectedLayout defaultDiagramName 
 ! !
 
-!GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 11/29/2023 17:29:13'!
+!GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 1/1/2024 19:36:18'!
 open: aForceDirectedLayout label: aString
 
-	| aKernelMorph aLayoutMorph aScrollPane aWindow |
+	| aKernelMorph aLayoutMorph indicator top aScrollPane aWindow |
 	
 	aKernelMorph := BoxedMorph new.
 
@@ -556,7 +590,21 @@ open: aForceDirectedLayout label: aString
 	
 	aLayoutMorph := LayoutMorph newColumn.
 	
-	aLayoutMorph addMorph: (self buildToolBar: aScrollPane).
+	indicator := ActivityIndicatorMorph new morphExtent: 24@24; yourself.
+	
+	aScrollPane when: #morphicStep evaluate:[ :delta | indicator flip].
+	
+	aScrollPane when: #morphicStopStep evaluate:[ indicator reset]. 
+	
+	top := LayoutMorph newRow.
+	
+	top separation: 18@0.
+	
+	top layoutSpec fixedHeight: 48.
+	
+	top addMorph: indicator; addMorph: (self buildToolBar: aScrollPane).
+	
+	aLayoutMorph addMorph: top.
 	
 	aLayoutMorph addMorph: aScrollPane.
 	
@@ -1117,6 +1165,18 @@ moveToLowestPoint
 
 ! !
 
+!ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 1/1/2024 19:59:24'!
+reshuffle: aRectangle
+
+	| ps n |
+	
+	n := magnets size.
+	
+	ps := ForceDirectedSolver random: n in: aRectangle.
+	
+	1 to: n do:[:i | (magnets at:i) position: (ps at:i) ].
+	! !
+
 !ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 3/5/2023 09:32:11'!
 solve: aNumber
 
@@ -1435,22 +1495,22 @@ example15
 	GaudiViewer open:s.
 ! !
 
-!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 12/14/2021 15:38:50'!
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 1/1/2024 19:39:52'!
 example16
 
 	"self example16"
 
 	| s magnets n |
 	
-	n _ 256.
+	n := 256.
 	
-	magnets _ (1 to: n - 1) collect:[:each | Magnet new charge: 32.0 ; yourself ].
+	magnets := (1 to: n - 1) collect:[:each | Magnet new charge: 32.0 ; yourself ].
 
-	magnets _ magnets asArray.
+	magnets := magnets asArray.
 
 	(magnets at:1) position: 0@0.
 	
-	s _ ForceDirectedSolver new.
+	s := ForceDirectedSolver new.
 
 	magnets do:[:each | s addObject: each ].
 
@@ -1461,7 +1521,7 @@ example16
 	
 	(1 to: n / 2 -1) do: [ :index | | f |
 		
-		f _ 2 raisedTo: index log2 asInteger.
+		f := 2 raisedTo: index log2 asInteger.
 		
 		(magnets at: index * 2) position: (magnets at:index) position + (128 * 16 / f  @ 1024).
 		(magnets at: index * 2 + 1) position: (magnets at:index) position + (-16 * 128 / f  @ 1024).
@@ -1524,41 +1584,41 @@ example3
 	GaudiViewer open:s.
 ! !
 
-!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 3/6/2023 20:03:41'!
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 1/1/2024 19:41:54'!
 example31
 
 	"self example31"
 
 	| s magnets n j ms |
 	
-	s _ ForceDirectedSolver new.
+	s := ForceDirectedSolver new.
 
 	s setProperty: #force_directed_solver_tolerance to: 0.25.
 	
-	n _ 128.
+	n := 128.
 	
-	magnets _ (1 to: n-1) collect:[:each | Magnet new charge: 8.0; yourself ].
+	magnets := (1 to: n-1) collect:[:each | Magnet new charge: 8.0; yourself ].
 
 	(1 to:n / 2 - 1) do: [ :index | 
 		s addConstraint: (Spring length:10 strength:0.05 between: (magnets at: index) and: (magnets at: index * 2) ).
 		s addConstraint: (Spring length:10 strength:0.05 between: (magnets at: index) and: (magnets at: index * 2 + 1 ) ). ] .
 
-	j _ 2.
+	j := 2.
 	
 	(magnets at:1) position: 0@0.
 	
 	1 to: (n log: 2) - 1 do: [:h |
-		ms _ magnets copyFrom: j to: j + (2 raisedTo:h) - 1.
+		ms := magnets copyFrom: j to: j + (2 raisedTo:h) - 1.
 		self arrangeInCircle: ms center: 0@0 radius: 15 * h.	
-		j _ j + (2 raisedTo:h)		] .
+		j := j + (2 raisedTo:h)		] .
 	
 	magnets do:[:each | s addObject: each ].
 
 	s setProperty: #force_directed_solver_n to: 10.
 
-	AndreasSystemProfiler spyOn: [s solve:15].	
+	"AndreasSystemProfiler spyOn: [s solve:15].	"
 	
-	"s solve:10."
+	s solve:1.
 	
 	GaudiViewer open:s.
 ! !
