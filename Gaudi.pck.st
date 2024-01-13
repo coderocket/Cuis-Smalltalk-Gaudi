@@ -1,6 +1,7 @@
-'From Cuis 6.0 [latest update: #6053] on 1 January 2024 at 8:00:57 pm'!
+'From Cuis6.3 [latest update: #6156] on 13 January 2024 at 7:09:23 pm'!
 'Description '!
-!provides: 'Gaudi' 1 8!
+!provides: 'Gaudi' 1 12!
+!requires: 'UI-Components' 1 4 nil!
 !requires: 'UI-Shapes' 1 37 nil!
 SystemOrganization addCategory: #'Gaudi-Morphic'!
 SystemOrganization addCategory: #Gaudi!
@@ -48,7 +49,7 @@ QuadTreeMorph class
 
 !classDefinition: #SimpleLineMorph category: #'Gaudi-Morphic'!
 PlacedMorph subclass: #SimpleLineMorph
-	instanceVariableNames: 'endPoint lineWidth arrow arrowHeadLength color'
+	instanceVariableNames: 'lineWidth arrow arrowHeadLength color start end stretch'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Gaudi-Morphic'!
@@ -226,19 +227,17 @@ calculateKeyArray
 	selectionIndex _ 0.
 ! !
 
-!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:01:44'!
-editProperties
+!GaudiViewerMorph methodsFor: 'events' stamp: 'DF 1/7/2024 21:45:18'!
+processMouseDown: aMouseButtonEvent localPosition: localEventPosition
 
-	model editProperties
-	! !
+	aMouseButtonEvent wasHandled: true.
 
-!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/4/2021 15:38:29'!
-exportAsJPG
-		self request: 'Enter file name'
-		initialAnswer: (model defaultDiagramName),'.jpeg'
-		do: [:aString| (scroller imageFormVG: nil depth: 32) writeJPEGfileNamed: aString]! !
+	aMouseButtonEvent mouseButton2Pressed ifTrue: [
+		self mouseButton2Down: aMouseButtonEvent localPosition: localEventPosition.
+		aMouseButtonEvent hand removeHaloFromClick: aMouseButtonEvent on: self.
+		^self ].	! !
 
-!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 1/1/2024 19:52:05'!
+!GaudiViewerMorph methodsFor: 'menus' stamp: 'DF 1/1/2024 19:52:05'!
 getMenu
 
 	| aMenu |
@@ -264,9 +263,23 @@ getMenu
 
 	^aMenu! !
 
-!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:00:50'!
+!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 11/17/2021 10:01:44'!
+editProperties
+
+	model editProperties
+	! !
+
+!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 12/4/2021 15:38:29'!
+exportAsJPG
+		self request: 'Enter file name'
+		initialAnswer: (model defaultDiagramName),'.jpeg'
+		do: [:aString| (scroller imageFormVG: nil depth: 32) writeJPEGfileNamed: aString]! !
+
+!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 1/7/2024 23:02:04'!
 rerunSolver
 
+	self setupMagnetPositions.
+	
 	scroller removeAllMorphs.
 	
 	model solve: 50.
@@ -283,6 +296,20 @@ reshuffle
 		
 	model populate: scroller.
 	! !
+
+!GaudiViewerMorph methodsFor: 'as yet unclassified' stamp: 'DF 1/7/2024 23:01:50'!
+setupMagnetPositions
+
+	| transform morphWindow |
+
+	morphWindow := scroller morphLocalBounds infimum insetBy: (model propertyAt: #force_directed_solver_inset).
+	
+	transform := AffineTransformation transformFrom: morphWindow to: model window supremum.
+	
+	scroller submorphsDo: [ :each |
+		each hasProperty: #magnet :: ifTrue:[ 
+			(each valueOfProperty: #magnet) position: (transform transform: each morphPosition) ] ].
+! !
 
 !GaudiViewerMorph methodsFor: 'zooming' stamp: 'DF 12/6/2021 16:36:44'!
 zoomIn
@@ -455,20 +482,20 @@ arrow: aBoolean
 arrowHeadLength: aNumber
 	arrowHeadLength _ aNumber ! !
 
-!SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 12/14/2023 20:07:32'!
+!SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 1/7/2024 19:15:21'!
 center
-	^ (endPoint) / 2! !
+	^ (end morphPosition) / 2! !
 
 !SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 12/14/2023 18:34:44'!
 color: aColor
 	color := aColor! !
 
-!SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 11/13/2021 14:16:58'!
-endPoint: aPoint
+!SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 1/7/2024 19:15:28'!
+end: aMorph
 
-	endPoint _ aPoint.
-	
-	extent _ endPoint.! !
+	end := aMorph.
+		
+! !
 
 !SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 12/3/2020 10:54:34'!
 lineWidth
@@ -478,24 +505,43 @@ lineWidth
 lineWidth: aNumber
 	lineWidth := aNumber! !
 
-!SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 11/13/2021 14:15:50'!
-startPoint: aPoint
+!SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 1/7/2024 19:15:57'!
+start: aMorph
 
-	self morphPosition: aPoint! !
+	start := aMorph.
+! !
 
-!SimpleLineMorph methodsFor: 'drawing' stamp: 'DF 11/13/2021 14:18:01'!
+!SimpleLineMorph methodsFor: 'accessing' stamp: 'DF 1/8/2024 14:26:11'!
+stretch: aNumber
+	stretch := aNumber! !
+
+!SimpleLineMorph methodsFor: 'drawing' stamp: 'DF 1/8/2024 14:39:16'!
 drawOn: aCanvas
+
 	"Draw self in own coordinates"
-	
+
+	| endPoint |
+
+	self morphPosition: start morphPosition.
+		
+	endPoint := end morphPosition - start morphPosition.
+		
 	aCanvas
 		line: `0@0`
-		to:  endPoint
+		to: endPoint
 		width: lineWidth
 		color: color.
+	
+	stretch > 1 ifTrue:[
+		aCanvas
+			line: endPoint / stretch 
+			to: endPoint
+			width: lineWidth
+			color: Color red 	].
 		
 	arrow ifTrue:[ | lineDirection |
 		
-		lineDirection _ endPoint normalized.
+		lineDirection := endPoint normalized.
 		
 		aCanvas
 			line: endPoint
@@ -510,29 +556,19 @@ drawOn: aCanvas
 			color: color.
 	].! !
 
-!SimpleLineMorph methodsFor: 'initialization' stamp: 'DF 11/13/2021 14:16:21'!
+!SimpleLineMorph methodsFor: 'initialization' stamp: 'DF 1/7/2024 19:14:40'!
 initialize
 
 	super initialize.
 	
-	endPoint _ 40@50.
-	
-	extent _ endPoint.
-	
 	lineWidth := 2.
 	
-	arrow _ false.
+	arrow := false.
 	
-	arrowHeadLength _ 8.
+	arrowHeadLength := 8.
 	
 	color := Color cyan.
 	! !
-
-!SimpleLineMorph methodsFor: 'geometry testing' stamp: 'DF 12/9/2020 17:46:00'!
-morphContainsPoint: aLocalPoint
-	
-	^self morphLocalBounds containsPoint: aLocalPoint
-! !
 
 !GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 12/6/2021 16:26:04'!
 buildToolBar: aModel
@@ -572,13 +608,13 @@ open: aForceDirectedLayout
 	self open: aForceDirectedLayout label: aForceDirectedLayout defaultDiagramName 
 ! !
 
-!GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 1/1/2024 19:36:18'!
+!GaudiViewer class methodsFor: 'as yet unclassified' stamp: 'DF 1/7/2024 22:25:30'!
 open: aForceDirectedLayout label: aString
 
 	| aKernelMorph aLayoutMorph indicator top aScrollPane aWindow |
 	
 	aKernelMorph := BoxedMorph new.
-
+	
 	aKernelMorph color: Color veryVeryLightGray.
 	
 	aScrollPane := GaudiViewerMorph new.
@@ -838,7 +874,7 @@ randomPoint
 	
 	^ x @ y! !
 
-!Magnet methodsFor: 'morphic' stamp: 'DF 12/14/2023 18:42:00'!
+!Magnet methodsFor: 'morphic' stamp: 'DF 1/7/2024 22:43:56'!
 buildMorph: properties
 
 	| aCircleMorph |
@@ -852,6 +888,12 @@ buildMorph: properties
 	aCircleMorph radius: (properties at: #magnet_morph_extent) x / 2.
 	
 	aCircleMorph center: 0@0. 
+	
+	aCircleMorph setProperty: #handlesMouseDown: toValue: true.
+	
+	aCircleMorph setProperty: #mouseMove:localPosition:  toValue: [:event :localPosition |
+		aCircleMorph morphPosition: (aCircleMorph externalize: localPosition). aCircleMorph owner redrawNeeded ].
+	aCircleMorph setProperty: #magnet toValue: self.
 		
 	^aCircleMorph.
 
@@ -911,12 +953,12 @@ asMorphBetween: aMorph and: anotherMorph with: properties
 		
 	^aLineMorph! !
 
-!BinaryConstraint methodsFor: 'morphic' stamp: 'DF 11/17/2021 17:07:02'!
+!BinaryConstraint methodsFor: 'morphic' stamp: 'DF 1/8/2024 14:27:25'!
 buildMorphBetween: aMorph and: anotherMorph with: properties 
 
 	| aLineMorph  |
 	
-	aLineMorph _ SimpleLineMorph new startPoint: aMorph morphPosition ; endPoint: anotherMorph morphPosition - aMorph morphPosition; lineWidth: (properties at:#spring_line_width); yourself.
+	aLineMorph := SimpleLineMorph new start: aMorph ; end: anotherMorph ; lineWidth: (properties at:#spring_line_width); stretch: 1 ; yourself.
 
 	aLineMorph color: (properties at: #spring_line_color	).
 		
@@ -973,12 +1015,14 @@ buildDebugLabelIn: aLineMorph properties: properties
 		aLabel morphPosition: aLineMorph center.
 	]! !
 
-!Spring methodsFor: 'morphic' stamp: 'DF 11/17/2021 17:08:43'!
+!Spring methodsFor: 'morphic' stamp: 'DF 1/8/2024 14:28:08'!
 buildMorphBetween: aMorph and: anotherMorph with: properties 
 
-	| aLineMorph |
-
-	aLineMorph _ super buildMorphBetween: aMorph and: anotherMorph with: properties.
+	| aLineMorph  |
+	
+	aLineMorph := super buildMorphBetween: aMorph and: anotherMorph  with: properties.
+	
+	aLineMorph stretch: (self from position - self to position ) r / length.
 	
 	self buildDebugLabelIn: aLineMorph properties: properties.
 	
@@ -1065,13 +1109,13 @@ point: aParticle
 start: aParticle
 	start _ aParticle! !
 
-!ForceDirectedSolver methodsFor: 'initialization' stamp: 'DF 11/16/2021 22:26:51'!
+!ForceDirectedSolver methodsFor: 'initialization' stamp: 'DF 1/7/2024 23:03:09'!
 initialize
 
-	magnets _ OrderedCollection new.
-	springs _ OrderedCollection new.
+	magnets := OrderedCollection new.
+	springs := OrderedCollection new.
 
-	properties _ CascadingProperties new parent: Defaults ; yourself.! !
+	properties := CascadingProperties new parent: Defaults ; yourself.! !
 
 !ForceDirectedSolver methodsFor: 'solving' stamp: 'DF 3/5/2023 09:29:18'!
 accumulateForces
@@ -1222,6 +1266,11 @@ properties: aCasCadingProperties
 
 	properties _ aCasCadingProperties ! !
 
+!ForceDirectedSolver methodsFor: 'accessing' stamp: 'DF 1/7/2024 22:53:56'!
+propertyAt: aSymbol
+
+	^properties at: aSymbol! !
+
 !ForceDirectedSolver methodsFor: 'accessing' stamp: 'DF 11/17/2021 21:02:12'!
 setProperty: aSymbol to: anObject
 	properties at: aSymbol put: anObject! !
@@ -1242,7 +1291,7 @@ editProperties
 
 	properties edit! !
 
-!ForceDirectedSolver methodsFor: 'morphic' stamp: 'DF 11/17/2021 18:37:35'!
+!ForceDirectedSolver methodsFor: 'morphic' stamp: 'DF 1/8/2024 14:20:59'!
 populate: aMorph 
 
 	| morphMap transform morphWindow |
@@ -1251,11 +1300,11 @@ populate: aMorph
 		^ self reportDivergence: aMorph		
 	].
 	
-	morphWindow _ aMorph morphLocalBounds infimum insetBy: (properties at: #force_directed_solver_inset).
+	morphWindow := aMorph morphLocalBounds infimum insetBy: (properties at: #force_directed_solver_inset).
 	
-	transform _ AffineTransformation transformFrom: self window supremum to: morphWindow.
+	transform := AffineTransformation transformFrom: self window supremum to: morphWindow.
 			
-	morphMap _ Dictionary new.
+	morphMap := Dictionary new.
 	
 	magnets do:[:each | morphMap at:each put: (each asMorph: transform with: properties)].
 	
@@ -1318,29 +1367,29 @@ arrangeInCircle: anOrderedCollection center: aPoint radius: aNumber
 		(anOrderedCollection at: i) position: v ].
 ! !
 
-!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 12/8/2021 19:35:36'!
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 1/8/2024 14:40:17'!
 example
 
 	"self example"
 	
 	| a b c d s |
 
-	a _ Magnet charge:1.0 position: 5.0@-5.0.
-	b _ Magnet charge:1.0 position: -5.0@5.0.
-	c _ Magnet charge:1.0 position: 5.0@5.0.
-	d _ Magnet charge:1.0 position: -5.0@-5.0.
+	a := Magnet charge:1.0 position: 5.0@-5.0.
+	b := Magnet charge:1.0 position: -5.0@5.0.
+	c := Magnet charge:1.0 position: 5.0@5.0.
+	d := Magnet charge:1.0 position: -5.0@-5.0.
 
-	s _ ForceDirectedSolver new.
+	s := ForceDirectedSolver new.
 
 	s addObject: a.
 	s addObject: b.
 	s addObject: c.
 	s addObject: d.
 
-	s addConstraint: (Spring length:8 strength:1 between:a and:b).
-	s addConstraint: (Spring length:8 strength:1 between:b and:c).
-	s addConstraint: (Spring length:8 strength:1 between:c and:d).
-	s addConstraint: (Spring length:8 strength:1 between:d and:a).
+	s addConstraint: (Spring length:2 strength:1 between:a and:b).
+	s addConstraint: (Spring length:2 strength:1 between:b and:c).
+	s addConstraint: (Spring length:2 strength:1 between:c and:d).
+	s addConstraint: (Spring length:2 strength:1 between:d and:a).
 
 	s solve:50.
 	
@@ -1408,7 +1457,7 @@ example11
 example12
 ! !
 
-!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 12/29/2023 20:21:07'!
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 1/8/2024 14:34:31'!
 example13
 
 	"self example13"
@@ -1422,7 +1471,7 @@ example13
 	magnets := OrderedCollection new.
 	
 	1 to: n-1 do:[:i |
-		magnets add: (Magnet new charge: 1 ; position: (ps at:i) ; yourself) 
+		magnets add: (Magnet new charge: 0.8 ; position: (ps at:i) ; yourself) 
 	].
 
 	s := ForceDirectedSolver new.
@@ -1430,8 +1479,8 @@ example13
 	magnets do:[:each | s addObject: each ].
 
 	(1 to:n / 2 - 1) do: [ :index | 
-		s addConstraint: (Spring length:1 strength:0.75 between: (magnets at: index) and: (magnets at: index * 2) ).
-		s addConstraint: (Spring length:1 strength:0.75 between: (magnets at: index) and: (magnets at: index * 2 + 1 ) ). ] .
+		s addConstraint: (Spring length:1.5 strength:0.85 between: (magnets at: index) and: (magnets at: index * 2) ).
+		s addConstraint: (Spring length:1.5 strength:0.85 between: (magnets at: index) and: (magnets at: index * 2 + 1 ) ). ] .
 
 	"s solve:100."
 
@@ -1554,26 +1603,26 @@ example2
 	GaudiViewer open:s.
 ! !
 
-!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 3/5/2023 10:36:40'!
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 1/8/2024 14:51:16'!
 example3
 
 	"self example3"
 
 	| s magnets n |
 	
-	n _ 256.
+	n := 128.
 	
-	magnets _ (1 to: n - 1) collect:[:each | Magnet new charge: 8.0 ; position: 400 atRandom @ 400 atRandom ; yourself ].
+	magnets := (1 to: n - 1) collect:[:each | Magnet new charge: 8.0 ; position: 400 atRandom @ 400 atRandom ; yourself ].
 
-	magnets _ magnets asArray.
+	magnets := magnets asArray.
 
-	s _ ForceDirectedSolver new.
+	s := ForceDirectedSolver new.
 
 	magnets do:[:each | s addObject: each ].
 
 	(1 to:n / 2 - 1) do: [ :index | 
-		s addConstraint: (Spring length:10 strength:0.05 between: (magnets at: index) and: (magnets at: index * 2) ).
-		s addConstraint: (Spring length:10 strength:0.05 between: (magnets at: index) and: (magnets at: index * 2 + 1 ) ). ] .
+		s addConstraint: (Spring length:18 strength:0.1 between: (magnets at: index) and: (magnets at: index * 2) ).
+		s addConstraint: (Spring length:18 strength:0.1 between: (magnets at: index) and: (magnets at: index * 2 + 1 ) ). ] .
 
 	s setProperty: #force_directed_solver_tolerance to: 0.2.
 
@@ -1623,22 +1672,22 @@ example31
 	GaudiViewer open:s.
 ! !
 
-!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 11/17/2021 16:47:46'!
+!ForceDirectedSolver class methodsFor: 'examples' stamp: 'DF 1/8/2024 14:54:44'!
 example4
 
 	"self example4"
 	
 	| a b c d x y s |
 
-	a _ Anchor position: 10@30.
-	b _ Magnet charge:25 position: 20@30.
-	c _ Magnet charge:25 position: 20@30.
-	d _ Anchor position: 400@30.
+	a := Anchor position: 10@30.
+	b := Magnet charge:5 position: 20@30.
+	c := Magnet charge:5 position: 20@30.
+	d := Anchor position: 400@30.
 
-	x _ Magnet charge:25 position: 400@30.
-	y _ Magnet charge:25 position: 400@30.
+	x := Magnet charge:5 position: 400@30.
+	y := Magnet charge:5 position: 400@30.
 
-	s _ ForceDirectedSolver new.
+	s := ForceDirectedSolver new.
 
 	s addObject: a.
 	s addObject: b.
@@ -1655,6 +1704,7 @@ example4
 	s addConstraint: (Spring length:80 strength:0.5 between:x and:y).
 	s addConstraint: (Spring length:80 strength:0.5 between:y and:d).
 	
+	s reshuffle: (0@0 extent: 800@800).
 	s solve:150.
 
 	GaudiViewer open:s.
